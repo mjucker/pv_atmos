@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Filename: atmos_grids.py
 #
-# Code by Martin Jucker, distributed under LICENSE HERE
+# Code by Martin Jucker, distributed under an MIT License
 # Any publication benefitting from this piece of code should cite CITATION HERE
 #
 # Python interface for ParaView (www.paraview.org). Provides means to add axes in Cartesian or spherical coordinates. Needs atmos_basic.py

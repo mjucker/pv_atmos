@@ -286,7 +286,7 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
             RenameSource("PresLabel",LabelTmp)
             LabelPushFac = 3.7
             Transx = [
-                      Right, Right+LabelPushFac*absLsz, Left, - LabelPushFac*absLsz ]
+                      Right, Right+LabelPushFac*absLsz, Left, Left-LabelPushFac*absLsz ]
             Transy = [Far+LabelPushFac*absLsz, Near, Near-LabelPushFac*absLsz, Far ]
             Rotx = [ 180.0,   0.0, 180.0, 180.0 ]
             Roty = [  90.0, -90.0,  90.0,  90.0 ]
@@ -312,11 +312,12 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
         if LabelSize > 0.0 :
             LabelTmp = a3DText(Text='latitude')
             RenameSource("LatLabel",LabelTmp)
-            Trans = [Right, -2.5*absLsz, Z]
+            midLat = 0.5*(Far-Near)
+            Trans = [Right, midLat-2.5*absLsz, Z]
             Rot = [ 90.0, 90.0, 0.0 ]
             TransLat = AddAxisLabel(LabelTmp, Trans, Rot)
             
-            Trans = [Left, +2.5*absLsz, Z]
+            Trans = [Left, midLat+2.5*absLsz, Z]
             Rot = [ 90.0,-90.0, 0.0 ]
             TransLat = AddAxisLabel(LabelTmp, Trans, Rot)
 

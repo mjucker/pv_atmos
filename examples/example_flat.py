@@ -6,10 +6,12 @@ except: from paraview.simple import *
 ## other needed modules from standard python ##
 import math
 ## load atmos modules ##
+# set path to the locations of atmos_grids.py and atmos_basic.py
+pvAtmosPath = '../'
 try: from atmos_basic import *
-except: execfile('atmos_basic.py')
+except: execfile(pvAtmosPath + 'atmos_basic.py')
 try: from atmos_grids import *
-except: execfile('atmos_grids.py')
+except: execfile(pvAtmosPath + 'atmos_grids.py')
 
 # define aspect ratio of coordinate system: keep lon and lat, multiply log-p by 20. Base log-p on 1e3hPa
 ratio = [1,1,20]

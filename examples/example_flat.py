@@ -18,7 +18,7 @@ ratio = [1,1,20]
 basis = 1e3
 
 ## now load example file ##
-fileName = 'uv_daily.nc'
+fileName = pvAtmosPath + 'examples/uv_daily.nc'
 # the file is 3D+time, in pressure coordinates, and we adjust the axis aspect ratio
 (output_nc,CorrZ,Coor,AspRat) = loadData(fileName, ['pfull','lat','lon'], 1, ratio)
 # we have now read in a 4D file, with log-pressure in the Z-direction

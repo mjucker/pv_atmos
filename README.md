@@ -5,8 +5,7 @@ Python scripting for scientific visualization software [ParaView](http://www.par
 
 No Python outside ParaView is needed, as ParaView ships with its own distribution.
 
-atmos_basic
------------
+# atmos_basic
 
 Provides functionality to read data on a latitude - longitude and, if desired, pressure or height coordinates grid, including time evolution (if present) from a netCDF file. The netCDF should loosely correspond to the [Climate and Forecast (FC) conventions](https://en.wikipedia.org/wiki/Climate_and_Forecast_Metadata_Conventions). The important attribute is the time coordinate: ParaView will be looking for the "units: xxxx since xxxx" attribute to decide which dimension corresponds to time.
 

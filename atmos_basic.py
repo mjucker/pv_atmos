@@ -4,7 +4,7 @@
 # Code by Martin Jucker, distributed under an MIT License
 # Any publication benefitting from this piece of code should cite CITATION HERE
 #
-# Python interface for ParaView (www.paraview.org). Reads netCDF file on a latitude - longitude and, if desired, pressure or height coordinates grid, including time evolution (if present). netCDF file needs to correspond to Climate and Forecast (FC) conventions (http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.6/cf-conventions.html).
+# Python interface for ParaView (www.paraview.org). Reads netCDF file on a latitude - longitude and, if desired, pressure or height coordinates grid, including time evolution (if present). netCDF file needs to correspond to Climate and Forecast (FC) conventions (https://en.wikipedia.org/wiki/Climate_and_Forecast_Metadata_Conventions).
 # Also Provides functions to modify Cartesian coordinates and wind components.
 
 ##### needed modules: paraview.simple, math #########################

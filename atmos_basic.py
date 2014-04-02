@@ -13,8 +13,12 @@
 strPi = str(math.pi)[0:7]
 
 ##### define auxiliary functions ##################################
-# make sure Z-coordinate (pressure or height) has only positive values
 def CorrectZCoord(src=GetActiveSource()):
+    """Make sure Z coordinate points in positive direction.
+
+    Adds a Calculator filter to the pipeline, which takes the absolute value of coordsZ:
+    src -- filter in pipeline to attach Calculator
+    """
     calc=Calculator(src)
     calc.Function = 'iHat*coordsX + jHat*coordsY + kHat*abs(coordsZ)'
     calc.CoordinateResults = 1
@@ -22,6 +26,13 @@ def CorrectZCoord(src=GetActiveSource()):
 
 # define pressure to z coordinate conversion
 def ConvertPressureString(pString, ratio=1.0, basis=1e3):
+    """Convert Z coordinate conversion into a string for Calculator filter.
+
+    Output is the string to be used inside the Calculator filter:
+    pString -- value in hPa
+    ratio   -- multiplicative factor for vertical coordinate
+    basis   -- basis (surface) pressure to normalize
+    """
     if ratio == 1.0:
         expression = 'log10(abs(' + pString + ')/' + str(basis) + ')'
     else:
@@ -29,19 +40,37 @@ def ConvertPressureString(pString, ratio=1.0, basis=1e3):
     return expression
 
 def Pressure2Z(plevel, ratio=1.0, basis=1e3):
+    """Convert pressure to log-pressure (height).
+
+    plevel -- the pressure level to convert
+    ratio  -- multiplicative factor for vertical coordinate
+    basis  -- basis (surface) pressure to normalize
+    """
     level = -math.log10(plevel/basis)*ratio
     return level
-
-# convert pressure coordinates to Cartesian coordinates
+ 
 def Pressure2Cart(src=GetActiveSource(), ratio=1.0, basis=1e3):
+    """Convert pressure coordinates to Cartesian coordinates.
+
+    Adds a Calculator filter to the pipeline
+    src   -- filter in pipeline to attach to
+    ratio -- multiplicative factor for vertical coordinate
+    basis -- basis (surface) pressure to normalize
+    """
     pFun = ConvertPressureString('coordsZ',ratio,basis)
     calc=Calculator(src)
     calc.Function = 'iHat*coordsX + jHat*coordsY - kHat*'+pFun
     calc.CoordinateResults = 1
     return calc
 
-# convert Cartesian to spherical coordinates. The sphere will have a minimum radius of 'radius'
 def Cart2Spherical(radius=1.0, src=GetActiveSource()):
+    """Convert Cartesian to spherical coordinates. 
+
+    Assumes X coordinate is longitude, Y coordinate latitude, Z coordinate vertical.
+    Adds Calculator filter to the pipeline.
+    radius -- radius of the sphere, where coordZ = basis
+    src    -- filter in pipeline to attach to
+    """
     calc=Calculator(src)
     strRad = str(radius)
     try:
@@ -52,8 +81,13 @@ def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     RenameSource('Cart2Spherical',calc)
     return calc
 
-# adjust aspect ratio of Cartesian grid: multiplies ratios x coordinates
+# 
 def GridAspectRatio(ratios, src=GetActiveSource()):
+    """Adjust aspect ratio of Cartesian grid: multiplies ratios x coordinates.
+
+    Adds Calculator filter to the pipeline.
+    ratios -- 2- or 3-vector with multiplicative factors for each spatial coordinate
+    """
     calc=Calculator(src)
     try:
         calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY + kHat*'+str(ratios[2])+'*coordsZ'
@@ -64,6 +98,15 @@ def GridAspectRatio(ratios, src=GetActiveSource()):
 
 # adjust aspect ratio of bounding box vector
 def BoundAspectRatio(bounds, ratios, basis=1e3):
+    """Adjust aspect ratio of bounding box (axes).
+
+    Inputs are:
+    bounds -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+    ratios -- Corrections to actually plotted axes
+    basis  -- basis (surface) pressure to normalize
+    Outputs are:
+    Left,Right,Near,Far,Bottom,Top -- [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] of axes
+    """
     Left   = bounds[0]*ratios[0]
     Right  = bounds[1]*ratios[0]
     Near   = bounds[2]*ratios[1]
@@ -75,14 +118,22 @@ def BoundAspectRatio(bounds, ratios, basis=1e3):
     else:
         return Left,Right,Near,Far
 
-# make filter selectable in pipeline browser, but don't show it
 def MakeSelectable(src=GetActiveSource()):
+    """Make filter selectable in pipeline browser, but don't show it."""
     rep=Show(src)
     rep.Visibility=0
 
 
 ######### read in data, redefine pressure coordinates and change aspect ratio ###############
 def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, aspectRatios=[1,1,1] ):
+    """Load netCDF file, convert coordinates into useful aspect ratio.
+
+    Adds file output_nc, Calculator CorrZ, Calculator LogP, and Calculator AspRat to the pipeline
+    fileName         -- full path and file name of data to be read
+    outputDimensions -- names of the dimensions within the netCDF file. Time should be excluded. Ordering matters!
+    presCoords       -- whether (1) or not (0) Z coordinate should be logarithmic
+    aspectRatios     -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 if presCoords=1
+    """ 
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] )
     output_nc = NetCDFReader( FileName=[fileName] )
 
@@ -122,8 +173,24 @@ def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, as
 
 ######## some other usefull tools #################################################
 
-# convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is given
+# 
 def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', vertAsp=1):
+    """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. 
+
+    Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is given. 
+    src                     -- filter in pipeline to attach to
+    zonalComponentName      -- name of zonal wind component in pipeline
+    meridionalComponentName -- name of meridional wind component in pipeline
+    secondsPerTimeStep      -- duration of time step in seconds: 86400 for daily
+    verticalComponentName   -- name of vertical component, or 'none'
+    vertAsp                 -- vertical aspect ratio to convert vertical wind component
+    Adds two Calculators to the pipeline:
+    W     -- wind vector calculation
+    normW -- magnitude of wind vector
+    Adds two slices to the pipeline to remove division by zero close to poles:
+    clipS -- remove south pole
+    clipN -- remove north pole
+    """
     W=Calculator(src)
     if verticalComponentName != 'none' :
         W.Function = '(' + \

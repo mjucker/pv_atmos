@@ -11,8 +11,7 @@ Provides functionality to read data on a latitude - longitude and, if desired, p
 
 The most important function is "loadData", which will read the netCDF file, and convert pressure to log-pressure corrdinate if desired. In addition, "Cart2Spherical" will transform the rectangular geometry into a sphere with given radius, and "CartWind2Atmos" converts zonal and meridional winds from m/s into degrees longitude per time step and degrees latitude per time step. It can also convert pressure velocity from hPa/s into the new vertical coordinate measure per time step.
 
-atmos_grids
------------
+### atmos_grids
 
 Provides the possibility to add axes, grid lines, planes, and labels. In case of spherical geometry, one can also add shells, which are spheres of a radius corresponding to a given pressure or height level. Planes and shells contain data information, and can therefore be used for data analysis as well as grid information.
 

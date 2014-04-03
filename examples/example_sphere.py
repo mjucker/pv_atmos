@@ -50,8 +50,8 @@ Show()
 Shells = AtmosShells(radius,ratio,basis,AspRat,[10,1],1,waterMark='bob 2014')
 
 # also add a shell at 100hPa, colored by zonal wind
-addShell = 100
-Plane100=AtmosShells(radius,ratio,basis,AspRat,[addShell],1)
+addShell = [100]
+Plane100=AtmosShells(radius,ratio,basis,AspRat,addShell,1)
 Srep = Show(Plane100[0])
 Srep.ColorArrayName = 'ucomp'
 try:

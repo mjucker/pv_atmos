@@ -41,7 +41,7 @@ repU.Opacity = 0.7
 Show()
 
 # now we want to add arrows showing the horizontal wind vector
-(W,normW,clipWS,clipWN) = CartWind2Atmos(AspRat)
+(W,normW,clipWS,clipWN) = CartWind2Atmos(src=AspRat,ratios=ratio)
 # add arrows
 Arrows = Glyph()
 Arrows.Scalars = ['POINTS','normW']

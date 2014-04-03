@@ -125,7 +125,7 @@ def MakeSelectable(src=GetActiveSource()):
 
 
 ######### read in data, redefine pressure coordinates and change aspect ratio ###############
-def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, aspectRatios=[1,1,1] ):
+def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, aspectRatios=[1,1,1], basis=1e3 ):
     """Load netCDF file, convert coordinates into useful aspect ratio.
 
     Adds file output_nc, Calculator CorrZ, Calculator LogP, and Calculator AspRat to the pipeline
@@ -133,6 +133,7 @@ def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, as
     outputDimensions -- names of the dimensions within the netCDF file. Time should be excluded. Ordering matters!
     presCoords       -- whether (1) or not (0) Z coordinate should be logarithmic
     aspectRatios     -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 if presCoords=1
+    basis            -- basis (surface) pressure to normalize
     """ 
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] )
     output_nc = NetCDFReader( FileName=[fileName] )
@@ -155,26 +156,25 @@ def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, as
     RenameSource('CorrZ',CorrZ)
     
     if presCoords>0 :
-        Coor = Pressure2Cart(CorrZ)
+        Coor = Pressure2Cart(CorrZ,1,basis)
         RenameSource('LogP',Coor)
         MakeSelectable(Coor)
+    else:
+        Coor = []
     
-    try:
-        if presCoords>0:
-            AspRat = GridAspectRatio(aspectRatios, Coor)
-        else:
-            AspRat = GridAspectRatio(aspectRatios, CoorZ)
-        RenameSource('AspectRatio',AspRat)
-        MakeSelectable(AspRat)
-    except:
-        pass
+    if presCoords>0:
+        AspRat = GridAspectRatio(aspectRatios, Coor)
+    else:
+        AspRat = GridAspectRatio(aspectRatios, CorrZ)
+    RenameSource('AspectRatio',AspRat)
+    MakeSelectable(AspRat)
     
     return output_nc,CorrZ,Coor,AspRat
 
 ######## some other usefull tools #################################################
 
 # 
-def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', vertAsp=1):
+def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', ratios=[1,1,1]):
     """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. 
 
     Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is given. 
@@ -183,7 +183,7 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
     meridionalComponentName -- name of meridional wind component in pipeline
     secondsPerTimeStep      -- duration of time step in seconds: 86400 for daily
     verticalComponentName   -- name of vertical component, or 'none'
-    vertAsp                 -- vertical aspect ratio to convert vertical wind component
+    ratios                  -- Corrections to actually plotted axes
     Adds two Calculators to the pipeline:
     W     -- wind vector calculation
     normW -- magnitude of wind vector
@@ -194,13 +194,13 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
     W=Calculator(src)
     if verticalComponentName != 'none' :
         W.Function = '(' + \
-        'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY*'+strPi+'/180))*360 +' + \
+        'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY/'+str(ratios[1])+'*'+strPi+'/180))*360 +' + \
         'jHat*'+meridionalComponentName+'/('+strPi+'*6.4e6)*180 +' + \
         'kHat*'+verticalComponentName+'/'+vertAsp + \
         ')*'+str(secondsPerTimeStep) 
     else:
         W.Function =  '(' + \
-        'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY*'+strPi+'/180))*360 +' + \
+        'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY/'+str(ratios[1])+'*'+strPi+'/180))*360 +' + \
         'jHat*'+meridionalComponentName+'/('+strPi+'*6.4e6)*180' + \
         ')*'+str(secondsPerTimeStep)  
     W.ResultArrayName = 'W'
@@ -216,13 +216,13 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
     clipS = Clip(norm)
     clipS.ClipType = 'Plane'
     clipS.ClipType.Normal = [0.0, 1.0, 0.0]
-    clipS.ClipType.Origin  = [0.0, -80.0, 0.0]
+    clipS.ClipType.Origin  = [0.0, -80.0*ratios[1], 0.0]
     RenameSource('clipS',clipS)
     MakeSelectable(clipS)
     clipN = Clip(clipS)
     clipN.ClipType = 'Plane'
     clipN.ClipType.Normal = [0.0,-1.0, 0.0]
-    clipN.ClipType.Origin  = [0.0, 80.0, 0.0]
+    clipN.ClipType.Origin  = [0.0, 80.0*ratios[1], 0.0]
     RenameSource('clipN',clipN)
     MakeSelectable(clipN)
     return W,norm,clipS,clipN

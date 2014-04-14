@@ -110,7 +110,7 @@ def AddLonPlane(lon, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], basi
         Plane1Rep.Representation = 'Outline'
         Plane1Rep.AmbientColor = AxisColor
         Plane1Rep.LineWidth = AxisWidth
-    return Plane1# add label of pressure surface in plane geometry
+    return Plane1
 
 def AddPresLabel(plevel, LabelSize=5.0, bounds=[0.0,360,-90.0,90.0], ratios=[1,1,1], basis=1e3, AxisColor=[0,0,0]):
     """Adds a label at a given pressure or height.
@@ -407,9 +407,9 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
         #pressure label
         if LabelSize > 0.0 :
             BoxH = Top - Bottom
-            LabelTmp = a3DText(Text='pressure')
+            LabelTmp = a3DText(Text='pressure [hPa]')
             RenameSource("PresLabel",LabelTmp)
-            LabelPushFac = 3.7
+            LabelPushFac = 4.0
             Transx = [
                       Right, Right+LabelPushFac*absLsz, Left, Left-LabelPushFac*absLsz ]
             Transy = [Far+LabelPushFac*absLsz, Near, Near-LabelPushFac*absLsz, Far ]
@@ -417,9 +417,9 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
             Roty = [  90.0, -90.0,  90.0,  90.0 ]
             Rotz = [   0.0,  90.0, 180.0,  90.0 ]
             for i in range(len(Transx)):
-                Trans = [ Transx[i], Transy[i], BoxH*0.5-3.0*absLsz ]
+                Trans = [ Transx[i], Transy[i], BoxH*0.5-4.0*absLsz ]
                 Rot = [ Rotx[i], Roty[i], Rotz[i] ]
-                TransPres = AddAxisLabel(LabelTmp, Trans, Rot)
+                TransPres = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
                 
     # for coordinate labels
     Z = Bottom - absLsz*3.0
@@ -440,11 +440,11 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
             midLat = 0.5*(Far-Near)
             Trans = [Right, midLat-2.5*absLsz, Z]
             Rot = [ 90.0, 90.0, 0.0 ]
-            TransLat = AddAxisLabel(LabelTmp, Trans, Rot)
+            TransLat = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
             
             Trans = [Left, midLat+2.5*absLsz, Z]
             Rot = [ 90.0,-90.0, 0.0 ]
-            TransLat = AddAxisLabel(LabelTmp, Trans, Rot)
+            TransLat = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
 
     #longitude grid
     if len(lons) > 0 :
@@ -462,11 +462,11 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
             RenameSource("LonLabel",LabelTmp)
             Trans = [0.5*(Left+Right)-3.0*absLsz, Near, Z]
             Rot = [ 90.0,   0.0, 0.0 ]
-            TransLon = AddAxisLabel(LabelTmp, Trans, Rot)
+            TransLon = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
             
             Trans = [0.5*(Left+Right)+3.0*absLsz, Far, Z]
             Rot = [ 90.0, 180.0, 0.0 ]
-            TransLon = AddAxisLabel(LabelTmp, Trans, Rot)
+            TransLon = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
 
 
 

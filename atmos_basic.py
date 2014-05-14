@@ -9,7 +9,7 @@
 
 ##### needed modules: paraview.simple, math #########################
 from paraview.simple import *
-import math.pi,math.log10
+from math import pi,log10
 
 # some global constants
 strPi = str(pi)[0:7]

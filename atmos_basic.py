@@ -8,9 +8,11 @@
 # Also Provides functions to modify Cartesian coordinates and wind components.
 
 ##### needed modules: paraview.simple, math #########################
+from paraview.simple import *
+from math import pi,log10
 
 # some global constants
-strPi = str(math.pi)[0:7]
+strPi = str(pi)[0:7]
 
 ##### define auxiliary functions ##################################
 # make sure Z-coordinate (pressure or height) has only positive values
@@ -29,7 +31,7 @@ def ConvertPressureString(pString, ratio=1.0, basis=1e3):
     return expression
 
 def Pressure2Z(plevel, ratio=1.0, basis=1e3):
-    level = -math.log10(plevel/basis)*ratio
+    level = -log10(plevel/basis)*ratio
     return level
 
 # convert pressure coordinates to Cartesian coordinates

@@ -19,7 +19,7 @@ basis = 1e3
 radius = 1
 
 ## now load example file ##
-fileName = 'uv_daily.nc'
+fileName = pvAtmosPath + 'examples/uv_daily.nc'
 # the file is 3D+time, in pressure coordinates, and we adjust the axis aspect ratio
 (output_nc,CorrZ,Coor,AspRat) = loadData(fileName, ['pfull','lat','lon'], 1, ratio)
 # we have now read in a 4D file, with log-pressure in the Z-direction
@@ -50,8 +50,8 @@ Show()
 Shells = AtmosShells(radius,ratio,basis,AspRat,[10,1],1,waterMark='bob 2014')
 
 # also add a shell at 100hPa, colored by zonal wind
-addShell = 100
-Plane100=AtmosShells(radius,ratio,basis,AspRat,[addShell],1)
+addShell = [100]
+Plane100=AtmosShells(radius,ratio,basis,AspRat,addShell,1)
 Srep = Show(Plane100[0])
 Srep.ColorArrayName = 'ucomp'
 try:

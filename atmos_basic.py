@@ -232,13 +232,10 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
 #
 def DeleteAll():
     """Delete all objects in the pipeline browser."""
-    for src in GetSources():
-        obj = FindSource(src[0])
-        Delete(obj)
+    for src in GetSources().values():
+        Delete(src)
 #
 def HideAll():
     """Make all objects in pipeline browser invisible."""
-    for src in GetSources():
-        obj = FindSource(src[0])
-        prep = GetDisplayProperties(obj)
-        prep.Visibility = 0
+    for src in GetSources().values():
+    	Hide(src)

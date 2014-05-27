@@ -2,9 +2,13 @@ import unittest
 import random
 import math
 import numpy as np
+import os
 
 #adjust the path to pv-atmos here:
-pvAtmosPath='../'
+try:
+	pvAtmosPath=os.path.dirname(__file__) + '../'
+except: #if run in interactive mode
+	pvAtmosPath='../'
 try: from atmos_basic import *
 except: execfile(pvAtmosPath + 'atmos_basic.py')
 try: from atmos_grids import *

@@ -1,9 +1,11 @@
-pv-atmos
+pv_atmos
 ========
 
-Python scripting for scientific visualization software [ParaView](http://www.paraview.org). In particular, pv-atmos contains routines for visualizing data from geophysical netCDF data.
+Python scripting for scientific visualization software [ParaView](http://www.paraview.org). In particular, pv_atmos contains routines for visualizing data from geophysical netCDF data.
 
 No Python outside ParaView is needed, as ParaView ships with its own distribution.
+
+If, on the other hand, pv_atmos shall be used as a python package outside the ParaView python console, make sure paraview.simple is in the python path.
 
 ### atmos_basic
 
@@ -21,12 +23,16 @@ These routines are not limited to any kind of data, and can be used with any dat
 Releases
 --------
 
-The release directory containes published releases as .zip packages for easy referral and version control.
+See releases with changelogs in the releases panel of the GitHub distribution.
 
 Installation & Use
 ------------------
 
-No python installation and/or command shell is needed. Download the .zip release file, unpack it where convenient. Start ParaView, and open the Python Shell contained within ParaView. Type "import math". If the pv-atmos files are not unpacked in the run directory, use the "run script" button and choose atmos_basic.py first, atmos_grids.py second, and you are ready to use the pv-atmos functions.
+1) For use in the ParaView python console: 
+No python installation and/or command shell is needed. Download the .zip file, unpack it where convenient. Start ParaView, and open the Python Shell contained within ParaView. If the pv_atmos files are not unpacked in the run directory, use the "run script" button and choose atmos_basic.py first, atmos_grids.py second, and you are ready to use the pv_atmos functions.
+
+2) For use as independent python package:
+Run 'python setup.py install' in the command line within the downloaded directory. This will install the package pv_atmos and you can run 'from pv_atmos import atmos_basic' or 'from pv_atmos import atmos_grids'.
 
 
 Examples

@@ -6,7 +6,7 @@ import os
 
 #adjust the path to pv-atmos here:
 try:
-	pvAtmosPath=os.path.dirname(__file__) + '../'
+	pvAtmosPath=os.path.dirname(__file__) + '/../'
 except: #if run in interactive mode
 	pvAtmosPath='../'
 try: from atmos_basic import *

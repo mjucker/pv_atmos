@@ -48,12 +48,14 @@ These routines are not limited to any kind of data, and can be used with
 any data, or even without data, to add a custom grid to a visualization.
 
 
-Releases --------
+Releases
+--------
 
 See releases with changelogs in the releases panel of the GitHub
 distribution.
 
-Installation & Use ------------------
+Installation & Use
+------------------
 
 1) For use in the ParaView python console: No python installation and/or
 command shell is needed. Download the .zip file, unpack it where
@@ -68,7 +70,8 @@ the package pv_atmos and you can run 'from pv_atmos import atmos_basic'
 or 'from pv_atmos import atmos_grids'.
 
 
-Examples --------
+Examples
+--------
 
 The examples directory contains two example scripts and the data file
 uv_daily.nc, which can be run within the python terminal of ParaView.
@@ -80,12 +83,14 @@ within the example scripts to the directory containing atmos_basic.py
 and atmos_grids.py.
 
 
-Dependencies ------------
+Dependencies
+------------
 
 Needs the python module math for coordinate conversion (Pi and log).
 atmos_grids needs atmos_basic.
 
-Remarks -------
+Remarks
+-------
 
 Input netCDF files should generally conform to the Climate and Forecast
 (CF) metadata convention. A not so rigorous but sufficient test is to

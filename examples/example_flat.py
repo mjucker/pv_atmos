@@ -1,4 +1,10 @@
 #!/usr/bin/python
+# Filename: example_flat.py
+#
+# Code by Martin Jucker, distributed under an MIT License
+# Any publication benefitting from this piece of code should cite
+# Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
+# Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
 ## import paraview ##
 try: paraview.simple

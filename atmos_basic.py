@@ -2,7 +2,9 @@
 # Filename: atmos_basic.py
 #
 # Code by Martin Jucker, distributed under an MIT License
-# Any publication benefitting from this piece of code should cite CITATION HERE
+# Any publication benefitting from this piece of code should cite
+# Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
+# Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 #
 # Python interface for ParaView (www.paraview.org). Reads netCDF file on a latitude - longitude and, if desired, pressure or height coordinates grid, including time evolution (if present). netCDF file needs to correspond to Climate and Forecast (FC) conventions (https://en.wikipedia.org/wiki/Climate_and_Forecast_Metadata_Conventions).
 # Also Provides functions to modify Cartesian coordinates and wind components.

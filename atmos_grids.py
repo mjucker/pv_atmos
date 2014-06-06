@@ -64,18 +64,19 @@ def AddLatPlane(lat,  bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], bas
     AxisWidth -- width of lines
     Adds one plane to the pipeline, either containing data or not
     """
+    latLoc = lat*ratios[1]
     (Left,Right,Near,Far,Bottom,Top) = BoundAspectRatio(bounds,ratios,basis)
     if data == 1 : #extract plane from data
         Plane1 = Slice(src)
-        Plane1.SliceType.Origin = [Left, lat, Bottom]
+        Plane1.SliceType.Origin = [Left, latLoc, Bottom]
         Plane1.SliceType.Normal = [0.0, 1.0, 0.0]
         Plane1Rep = GetDisplayProperties(Plane1)
         Plane1Rep.Representation = 'Surface'
     else: #create new plane otherwise
         Plane1 = Plane()
-        Plane1.Origin = [Left  , lat, Bottom]
-        Plane1.Point1 = [Right , lat, Bottom] #Origin -> Point1 defines x-axis of plane
-        Plane1.Point2 = [Left  , lat, Top   ] #Origin -> Point2 defines y-axis of plane
+        Plane1.Origin = [Left  , latLoc, Bottom]
+        Plane1.Point1 = [Right , latLoc, Bottom] #Origin -> Point1 defines x-axis of plane
+        Plane1.Point2 = [Left  , latLoc, Top   ] #Origin -> Point2 defines y-axis of plane
         Plane1Rep = GetDisplayProperties(Plane1)
         Plane1Rep.Representation = 'Outline'
         Plane1Rep.AmbientColor = AxisColor
@@ -96,18 +97,19 @@ def AddLonPlane(lon, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], basi
     AxisWidth -- width of lines
     Adds one plane to the pipeline, either containing data or not
     """
+    lonLoc = lon*ratios[0]
     (Left,Right,Near,Far,Bottom,Top) = BoundAspectRatio(bounds,ratios,basis)
     if data == 1 : #extract plane from data
         Plane1 = Slice(src)
-        Plane1.SliceType.Origin = [lon, Near, Bottom]
+        Plane1.SliceType.Origin = [lonLoc, Near, Bottom]
         Plane1.SliceType.Normal = [1.0, 0.0, 0.0]
         Plane1Rep = GetDisplayProperties(Plane1)
         Plane1Rep.Representation = 'Surface'
     else: #create new plane otherwise
         Plane1 = Plane()
-        Plane1.Origin = [lon, Far , Bottom]
-        Plane1.Point1 = [lon, Near, Bottom] #Origin -> Point1 defines x-axis of plane
-        Plane1.Point2 = [lon, Far , Top   ] #Origin -> Point2 defines y-axis of plane
+        Plane1.Origin = [lonLoc, Far , Bottom]
+        Plane1.Point1 = [lonLoc, Near, Bottom] #Origin -> Point1 defines x-axis of plane
+        Plane1.Point2 = [lonLoc, Far , Top   ] #Origin -> Point2 defines y-axis of plane
         Plane1Rep = GetDisplayProperties(Plane1)
         Plane1Rep.Representation = 'Outline'
         Plane1Rep.AmbientColor = AxisColor
@@ -135,17 +137,18 @@ def AddPresLabel(plevel, LabelSize=5.0, bounds=[0.0,360,-90.0,90.0], ratios=[1,1
     LabelScale = [abs(LabelSize), abs(LabelSize), abs(LabelSize)]
     Label = a3DText(Text=str(plevel))
     
+    percentOff = 0.02
     Trans1 = Transform()
-    Trans1.Transform.Translate = [ Right, Far+1, Z ]
+    Trans1.Transform.Translate = [ Right, Far+percentOff*(Far-Near), Z ]
     Trans1.Transform.Rotate = [ 90.0,90.0, 0.0 ]
     Trans1.Transform.Scale = LabelScale
     Trans1.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
     Rep = GetDisplayProperties()
     Rep.Representation = 'Surface'
     Rep.DiffuseColor = AxisColor
-    Rep.BackfaceRepresentation = 'Cull Backface' #hidden from begind
+    Rep.BackfaceRepresentation = 'Cull Backface' #hidden from behind
     Trans2 = Transform(Label)
-    Trans2.Transform.Translate = [ Right+1.0, Near, Z ]
+    Trans2.Transform.Translate = [ Right+percentOff*(Right-Left), Near, Z ]
     Trans2.Transform.Rotate = [ 90.0, 0.0, 0.0 ]
     Trans2.Transform.Scale = LabelScale
     Trans2.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
@@ -154,7 +157,7 @@ def AddPresLabel(plevel, LabelSize=5.0, bounds=[0.0,360,-90.0,90.0], ratios=[1,1
     Rep.DiffuseColor = AxisColor
     Rep.BackfaceRepresentation = 'Cull Backface'
     Trans3 = Transform(Label)
-    Trans3.Transform.Translate = [Left-1.0, Far, Z ]
+    Trans3.Transform.Translate = [Left-percentOff*(Right-Left), Far, Z ]
     Trans3.Transform.Rotate = [ 90.0,180.0, 0.0 ]
     Trans3.Transform.Scale = LabelScale
     Trans3.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
@@ -163,7 +166,7 @@ def AddPresLabel(plevel, LabelSize=5.0, bounds=[0.0,360,-90.0,90.0], ratios=[1,1
     Rep.DiffuseColor = AxisColor
     Rep.BackfaceRepresentation = 'Cull Backface'
     Trans4 = Transform(Label)
-    Trans4.Transform.Translate = [ Right, Near-1.0, Z ]
+    Trans4.Transform.Translate = [ Left, Near-percentOff*(Far-Near), Z ]
     Trans4.Transform.Rotate = [ 90.0,-90.0, 0.0 ]
     Trans4.Transform.Scale = LabelScale
     Trans4.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
@@ -187,6 +190,7 @@ def AddLatLabel(lat, LabelSize=5.0, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratio
     AxisColor -- color of lines in RGB
     Adds the Label itself and 2 transforms (one on each side of the axes) to the pipeline
     """
+    latLoc = lat*ratios[1]
     (Left,Right,Near,Far,Bottom,Top) = BoundAspectRatio(bounds,ratios,basis)
     Z = Bottom - LabelSize*1.5
     LabelScale = [LabelSize, LabelSize, LabelSize]
@@ -198,16 +202,16 @@ def AddLatLabel(lat, LabelSize=5.0, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratio
     else:
         latOffset = LabelSize*0.5
     Trans1 = Transform()
-    Trans1.Transform.Translate = [ Right, lat-latOffset, Z ]
+    Trans1.Transform.Translate = [ Right, latLoc-latOffset, Z ]
     Trans1.Transform.Rotate = [ 90.0, 90.0, 0.0 ]
     Trans1.Transform.Scale = LabelScale
     Trans1.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
     Rep = GetDisplayProperties()
     Rep.Representation = 'Surface'
     Rep.DiffuseColor = AxisColor
-    Rep.BackfaceRepresentation = 'Cull Backface' #hidden from begind
+    Rep.BackfaceRepresentation = 'Cull Backface' #hidden from behind
     Trans2 = Transform(Label)
-    Trans2.Transform.Translate = [ Left, lat+latOffset, Z ]
+    Trans2.Transform.Translate = [ Left, latLoc+latOffset, Z ]
     Trans2.Transform.Rotate = [ 90.0,-90.0, 0.0 ]
     Trans2.Transform.Scale = LabelScale
     Trans2.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
@@ -231,6 +235,7 @@ def AddLonLabel(lon, LabelSize=5.0, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratio
     AxisColor -- color of lines in RGB
     Adds the Label itself and 2 transforms (one on each side of the axes) to the pipeline
     """
+    lonLoc = lon*ratios[0]
     (Left,Right,Near,Far,Bottom,Top) = BoundAspectRatio(bounds,ratios,basis)
     Z = Bottom - LabelSize*1.5
     LabelScale = [LabelSize, LabelSize, LabelSize]
@@ -240,16 +245,16 @@ def AddLonLabel(lon, LabelSize=5.0, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratio
     else:
         lonOffset = LabelSize*1.5
     Trans1 = Transform()
-    Trans1.Transform.Translate = [lon-lonOffset, Near, Z ]
+    Trans1.Transform.Translate = [lonLoc-lonOffset, Near, Z ]
     Trans1.Transform.Rotate = [ 90.0, 0.0, 0.0 ]
     Trans1.Transform.Scale = LabelScale
     Trans1.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
     Rep = GetDisplayProperties()
     Rep.Representation = 'Surface'
     Rep.DiffuseColor = AxisColor
-    Rep.BackfaceRepresentation = 'Cull Backface' #hidden from begind
+    Rep.BackfaceRepresentation = 'Cull Backface' #hidden from behind
     Trans2 = Transform(Label)
-    Trans2.Transform.Translate = [lon+lonOffset, Far, Z ]
+    Trans2.Transform.Translate = [lonLoc+lonOffset, Far, Z ]
     Trans2.Transform.Rotate = [ 90.0,180.0, 0.0 ]
     Trans2.Transform.Scale = LabelScale
     Trans2.SMProxy.InvokeEvent('UserEvent','HideWidget') #don't show box
@@ -406,12 +411,12 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
                 Show(transc)
                 Show(transd)
         
-        #pressure label
+        #pressure axis label
         if LabelSize > 0.0 :
             BoxH = Top - Bottom
             LabelTmp = a3DText(Text='pressure [hPa]')
             RenameSource("PresLabel",LabelTmp)
-            LabelPushFac = 4.0
+            LabelPushFac = len(str(max(press)))+2
             Transx = [
                       Right, Right+LabelPushFac*absLsz, Left, Left-LabelPushFac*absLsz ]
             Transy = [Far+LabelPushFac*absLsz, Near, Near-LabelPushFac*absLsz, Far ]
@@ -435,11 +440,11 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
                 RenameSource("Label"+str(lat),label)
                 Show(transa)
                 Show(transb)
-        #Latitude label
+        #Latitude axis label
         if LabelSize > 0.0 :
             LabelTmp = a3DText(Text='latitude')
             RenameSource("LatLabel",LabelTmp)
-            midLat = 0.5*(Far-Near)
+            midLat = 0.5*(Far+Near)
             Trans = [Right, midLat-2.5*absLsz, Z]
             Rot = [ 90.0, 90.0, 0.0 ]
             TransLat = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
@@ -458,7 +463,7 @@ def AddGrid(press=[100,10,1,0.1], lats=[-60,-30,0,30,60], lons=[0,90,180,270], b
                 Show(transa)
                 Show(transb)
 
-        #Longitude label
+        #Longitude axis label
         if LabelSize > 0.0 :
             LabelTmp = a3DText(Text='longitude')
             RenameSource("LonLabel",LabelTmp)

@@ -82,7 +82,7 @@ def AddYPlane(y,  bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoor
     	yLoc = Lin2Log(y,ratios[1],basis[logCoord.index(1)])
     else:
     	yLoc = y*ratios[1]
-    print 'AddYPlane',yLoc,bounds
+    
     (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
     if data == 1 : #extract plane from data
         Plane1 = Slice(src)

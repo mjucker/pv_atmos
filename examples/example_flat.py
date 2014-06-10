@@ -65,8 +65,8 @@ except:
 ## add axes and grid
 LabSze = 6.0
 Bounds = [0,360,-90,90,1e3,0.01]
-# outside box
-AddGrid(xlevels=[0,360],ylevels=[-90,90],zlevels=[1e3,0.1],bounds=Bounds, ratios=ratio, logCoord=logCoord, basis=basis, AxisWidth=2.0,LabelSize=LabSze)
+# outside box, rename axes
+AddGrid(xlevels=[0,360],ylevels=[-90,90],zlevels=[1e3,0.1],bounds=Bounds, ratios=ratio, logCoord=logCoord, basis=basis, AxisWidth=2.0,LabelSize=LabSze, AxisNames=["longitude","latitude","pressure [hPa]"])
 # inside grid lines: add only line labels, not axis labels
 AddGrid(xlevels=[90,180,270],ylevels=[-45,0,45],zlevels=[1e2,10,1],bounds=Bounds,ratios=ratio, logCoord=logCoord, basis=basis, AxisWidth=1.0,LabelSize=-LabSze)
 

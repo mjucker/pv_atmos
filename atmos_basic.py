@@ -18,7 +18,7 @@ strPi = str(pi)[0:7]
 
 ##### define auxiliary functions ##################################
 def CorrectZCoord(src=GetActiveSource()):
-    """Make sure Z coordinate points in positive direction.
+    """Make sure Z coordinate points in positive direction. This is redundant for version >= 1.1
 
     Adds a Calculator filter to the pipeline, which takes the absolute value of coordsZ:
     src -- filter in pipeline to attach Calculator
@@ -28,44 +28,81 @@ def CorrectZCoord(src=GetActiveSource()):
     calc.CoordinateResults = 1
     return calc
 
-# define pressure to z coordinate conversion
-def ConvertPressureString(pString, ratio=1.0, basis=1e3):
-    """Convert Z coordinate conversion into a string for Calculator filter.
+# define logarithmic coordinate conversion
+def ConvertLogCoordString(pString, basis=1e3):
+    """Logarithmic coordinate conversion in string form for Calculator filter.
 
     Output is the string to be used inside the Calculator filter:
-    pString -- value in hPa
-    ratio   -- multiplicative factor for vertical coordinate
+    pString -- the coordinate to convert
     basis   -- basis (surface) pressure to normalize
     """
-    if ratio == 1.0:
-        expression = 'log10(abs(' + pString + ')/' + str(basis) + ')'
-    else:
-        expression = 'log10(abs(' + pString + ')/' + str(basis) + ')*' + str(ratio)
+    expression = 'abs(log10(abs(' + pString + ')/' + str(basis) + '))'
+    return expression
+	
+def ConvertPressureString(pString, ratio=1.0, basis=1e3):
+    """ConvertPressureString() is deprecated. Please use ConvertLogCoordString()"""
+    import warnings
+    warnings.warn("ConvertPressureString() is deprecated, please use ConvertLogCoordString() in the future", DeprecationWarning)
+    expression = ConvertLogCoordString(pString, basis=basis)
+    expression = expression+'*'+str(ratio)
     return expression
 
-def Pressure2Z(plevel, ratio=1.0, basis=1e3):
-    """Convert pressure to log-pressure (height).
-
-    plevel -- the pressure level to convert
-    ratio  -- multiplicative factor for vertical coordinate
-    basis  -- basis (surface) pressure to normalize
+# do the math for logarithmic coordinates - no coordinate conversion
+def Lin2Log(x, ratio=1.0, basis=1e3):
+    """Convert linear coordinate to logarithmic coordinate value
+        
+        x     -- the coordinate value to convert
+        ratio -- the multiplicative factor after log10
+        basis -- basis to normalize argument to logarithm (ie defines origin).
     """
-    level = -log10(plevel/basis)*ratio
+    level = abs(log10(x/basis))*ratio
     return level
- 
-def Pressure2Cart(src=GetActiveSource(), ratio=1.0, basis=1e3):
-    """Convert pressure coordinates to Cartesian coordinates.
+
+def Pressure2Z(plevel, ratio=1.0, basis=1e3):
+    """Pressure2Z() is deprecated. Use Lin2Log() instead."""
+    import warnings
+    warnings.warn("Pressure2Z() is deprecated. Use Lin2Log() instead.",DeprecationWarning)
+    level = Lin2Log(plevel, ratio, basis)
+    return level
+
+# do the coordinate conversion inside a Calculator
+def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[2], basis=[1e3]):
+    """Convert between logarithmic and linear coordinates. Also applies aspect ratio correction.
 
     Adds a Calculator filter to the pipeline
-    src   -- filter in pipeline to attach to
-    ratio -- multiplicative factor for vertical coordinate
-    basis -- basis (surface) pressure to normalize
+    src       -- filter in pipeline to attach to
+    ratios    -- multiplicative factor for coordinates - must be same length as # of dimensions
+    logCoords -- indices (0 based) of coordinates to be converted
+    basis     -- basis to normalize argument to logarithm (ie defines origin) - must be length 1 or same as logCoords
     """
-    pFun = ConvertPressureString('coordsZ',ratio,basis)
+    nVec=['iHat*','jHat*','kHat*']
+    coords=['coordsX','coordsY','coordsZ']
+    cFun=coords[:]
+    pFun=''
+    for pp in range(len(logCoords)):
+        ci = logCoords[pp]
+        if len(basis) == 1:
+            bas = basis[0]
+        else:
+            bas = basis[pp]
+        cFun[ci] = ConvertLogCoordString(coords[ci], bas)
+    for ii in range(len(ratios)):
+        if ratios[ii] != 1.0:
+            pFun += nVec[ii]+cFun[ii] + '*'+str(ratios[ii]) + ' + '
+        else:
+            pFun += nVec[ii]+cFun[ii] + ' + '
     calc=Calculator(src)
-    calc.Function = 'iHat*coordsX + jHat*coordsY - kHat*'+pFun
+    calc.Function = pFun[:-3]
     calc.CoordinateResults = 1
     return calc
+	
+
+def Pressure2Cart(src=GetActiveSource(), ratio=1.0, basis=1e3):
+	"""Pressure2Cart() is deprecated. Please use Cart2Log()."""
+	import warnings
+	warnings.warn("Pressure2Cart() is deprecated. Please use Cart2Log().",DeprecationWarning)
+	calc=Cart2Log(src,[1,1,ratio],basis=[basis])
+	return calc
 
 def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     """Convert Cartesian to spherical coordinates. 
@@ -85,7 +122,7 @@ def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     RenameSource('Cart2Spherical',calc)
     return calc
 
-# 
+# apply aspect ratios to grid. This might already be done in Cart2Log
 def GridAspectRatio(ratios, src=GetActiveSource()):
     """Adjust aspect ratio of Cartesian grid: multiplies ratios x coordinates.
 
@@ -101,26 +138,38 @@ def GridAspectRatio(ratios, src=GetActiveSource()):
     return calc
 
 # adjust aspect ratio of bounding box vector
-def BoundAspectRatio(bounds, ratios, basis=1e3):
+def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
     """Adjust aspect ratio of bounding box (axes).
 
     Inputs are:
-    bounds -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
-    ratios -- Corrections to actually plotted axes
-    basis  -- basis (surface) pressure to normalize
+    bounds     -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+    ratios     -- Corrections to actually plotted axes
+    logCoord   -- Which of the coordinates is in log scale [array]. Default is 3rd (pressure)
+    basis      -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
     Outputs are:
-    Left,Right,Near,Far,Bottom,Top -- [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] of axes
+    Xmin,Xmax,Ymin,Ymax,Zmin,Zmax of axes
     """
-    Left   = bounds[0]*ratios[0]
-    Right  = bounds[1]*ratios[0]
-    Near   = bounds[2]*ratios[1]
-    Far    = bounds[3]*ratios[1]
+    boundsIn=bounds[:]
+    #first, deal with log scale coordinates
+    for pp in range(len(logCoord)):
+        if len(boundsIn) > 2*logCoord[pp]:
+            if len(basis) > 0 :
+                bas = basis[pp]
+            else:
+                bas = basis[0]
+            boundsIn[logCoord[pp]*2  ] = Lin2Log(bounds[logCoord[pp]*2  ],1.0,bas)
+            boundsIn[logCoord[pp]*2+1] = Lin2Log(bounds[logCoord[pp]*2+1],1.0,bas)
+    #then apply aspect ratios
+    Xmin   = boundsIn[0]*ratios[0]
+    Xmax  = boundsIn[1]*ratios[0]
+    Ymin   = boundsIn[2]*ratios[1]
+    Ymax    = boundsIn[3]*ratios[1]
     if len(bounds) == 6 :
-        Bottom = Pressure2Z(bounds[-2],ratios[2],basis)
-        Top    = Pressure2Z(bounds[-1],ratios[2],basis)
-        return Left,Right,Near,Far,Bottom,Top
+        Zmin = boundsIn[4]*ratios[2]
+        Zmax = boundsIn[5]*ratios[2]
+        return Xmin,Xmax,Ymin,Ymax,Zmin,Zmax
     else:
-        return Left,Right,Near,Far
+        return Xmin,Xmax,Ymin,Ymax
 
 def MakeSelectable(src=GetActiveSource()):
     """Make filter selectable in pipeline browser, but don't show it."""
@@ -129,17 +178,19 @@ def MakeSelectable(src=GetActiveSource()):
 
 
 ######### read in data, redefine pressure coordinates and change aspect ratio ###############
-def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, aspectRatios=[1,1,1], basis=1e3 ):
+
+def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=[1e3] ):
     """Load netCDF file, convert coordinates into useful aspect ratio.
 
     Adds file output_nc, Calculator CorrZ, Calculator LogP, and Calculator AspRat to the pipeline
     fileName         -- full path and file name of data to be read
-    outputDimensions -- names of the dimensions within the netCDF file. Time should be excluded. Ordering matters!
-    presCoords       -- whether (1) or not (0) Z coordinate should be logarithmic
-    aspectRatios     -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 if presCoords=1
-    basis            -- basis (surface) pressure to normalize
+    ncDims           -- names of the dimensions within the netCDF file. Time should be excluded. Ordering [x,y,z]
+    aspectRatios     -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
+    logCoords        -- index/indices of dimension(s) to be logarithmic
+    basis            -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
     """ 
-    # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] )
+    # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round
+    outputDimensions = ncDims[::-1]
     output_nc = NetCDFReader( FileName=[fileName] )
 
     if len(outputDimensions)>0 :
@@ -155,24 +206,37 @@ def loadData( fileName, outputDimensions=['pfull','lat','lon'], presCoords=1, as
     MakeSelectable()
     RenameSource(fileName,output_nc)
     
-    CorrZ = CorrectZCoord(output_nc)
-    MakeSelectable(CorrZ)
-    RenameSource('CorrZ',CorrZ)
-    
-    if presCoords>0 :
-        Coor = Pressure2Cart(CorrZ,1,basis)
-        RenameSource('LogP',Coor)
+    #CorrZ = CorrectZCoord(output_nc)
+    #MakeSelectable(CorrZ)
+    #RenameSource('CorrZ',CorrZ)
+    ################################################### CONTINUE TRANSFORMATION HERE ##################
+    if len(logCoords)>0 :
+        Coor = Cart2Log(src=output_nc,ratios=aspectRatios,basis=basis)
+        RenameSource('LogCoor',Coor)
         MakeSelectable(Coor)
+        return output_nc,Coor
     else:
-        Coor = []
-    
-    if presCoords>0:
-        AspRat = GridAspectRatio(aspectRatios, Coor)
-    else:
+        CorrZ = CorrectZCoord(output_nc)
+        MakeSelectable(CorrZ)
+        RenameSource('CorrZ',CorrZ)
         AspRat = GridAspectRatio(aspectRatios, CorrZ)
-    RenameSource('AspectRatio',AspRat)
-    MakeSelectable(AspRat)
+        return output_nc,AspRat
+        #Coor = []
     
+    #if len(logCoords)>0 :
+    #    AspRat = GridAspectRatio(aspectRatios, Coor)
+    #else:
+    #    AspRat = GridAspectRatio(aspectRatios, CorrZ)
+    #RenameSource('AspectRatio',AspRat)
+    #MakeSelectable(AspRat)
+
+#return output_nc,CorrZ,Coor,AspRat
+
+def loadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], basis=1e3 ):
+    """This is deprecated, please use LoadData()"""
+    import warnings
+    (output_nc,CorrZ,Coor,AspRat)=LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=1e3 )
+    warnings.warn("loadData() is deprecated, please use LoadData() in the future", DeprecationWarning)
     return output_nc,CorrZ,Coor,AspRat
 
 ######## some other usefull tools #################################################
@@ -241,3 +305,8 @@ def HideAll():
     """Make all objects in pipeline browser invisible."""
     for src in GetSources().values():
     	Hide(src)
+#
+def ShowAll():
+    """Make all objects in pipeline browser visible."""
+    for src in GetSources().values():
+        Show(src)

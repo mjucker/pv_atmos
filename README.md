@@ -3,7 +3,7 @@ pv_atmos
 
 Python scripting for scientific visualization software
 [ParaView](http://www.paraview.org). In particular, pv_atmos contains
-routines for visualizing data from geophysical netCDF data.
+routines for visualizing data from geophysical netCDF data, and the capability to show arbitrary axes and labels (linear and logarithmic axes).
 
 This package is described in an open access peer-reviewed article:
 Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
@@ -19,8 +19,7 @@ python path (see Installation & Use below).
 
 ### atmos_basic
 ### 
-Provides functionality to read data on a latitude - longitude and, if
-desired, pressure or height coordinates grid, including time evolution
+Provides functionality to read data on a 2D or 3D linear or logarithmic coordinates grid, including time evolution
 (if present) from a netCDF file. The netCDF should loosely correspond to
 the [Climate and Forecast (FC)
 conventions](https://en.wikipedia.org/wiki/
@@ -28,8 +27,8 @@ Climate_and_Forecast_Metadata_Conventions). The important attribute is
 the time coordinate: ParaView will be looking for the "units: xxxx since
 xxxx" attribute to decide which dimension corresponds to time.
 
-The most important function is "loadData", which will read the netCDF
-file, and convert pressure to log-pressure corrdinate if desired. In
+The most important function is "LoadData", which will read the netCDF
+file, and convert linear to logarithmic (e.g. pressure to log-pressure) coordinate if desired. In
 addition, "Cart2Spherical" will transform the rectangular geometry into
 a sphere with given radius, and "CartWind2Atmos" converts zonal and
 meridional winds from m/s into degrees longitude per time step and
@@ -45,7 +44,7 @@ and shells contain data information, and can therefore be used for data
 analysis as well as grid information.
 
 These routines are not limited to any kind of data, and can be used with
-any data, or even without data, to add a custom grid to a visualization.
+any data, or even without data, to add a custom grid to a visualization. By default, the axes are named 'lon', 'lat', and 'pressure [hPa]', but this can be changed with the variable 'AxisNames' in the function 'AddGrid'.
 
 
 Releases
@@ -74,11 +73,11 @@ Examples
 --------
 
 The examples directory contains two example scripts and the data file
-uv_daily.nc, which can be run within the python terminal of ParaView.
+uv_daily.nc, which can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
 The example file contains the 3D structure of zonal and meridional wind
 over three daily time steps, created from GCM output. One script will
 create a spherical, one a rectangular plot of zonal wind. When using the
-example files, make sure to call "import math", and set "pvAtmosPath"
+example files, make sure to set "pvAtmosPath"
 within the example scripts to the directory containing atmos_basic.py
 and atmos_grids.py.
 
@@ -87,7 +86,7 @@ Dependencies
 ------------
 
 Needs the python module math for coordinate conversion (Pi and log).
-atmos_grids needs atmos_basic.
+atmos_grids needs atmos_basic, atmos_basic needs paraview.simple.
 
 Remarks
 -------

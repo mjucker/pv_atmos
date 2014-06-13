@@ -29,7 +29,7 @@ Cont = Contour(ContourBy='ucomp',Isosurfaces=[25])
 # color it
 repU = Show()
 repU.ColorArrayName = 'ucomp'
-# get lookup table for coloring ucomp, this only works in ParaView >= v4.0
+# get lookup table for coloring ucomp, this only works in ParaView >= v4.1
 try:
     ucomp = output_nc.PointData.GetArray('ucomp')
     lkpU = AssignLookupTable(ucomp,'Cool to Warm')
@@ -53,7 +53,7 @@ Arrows.SetScaleFactor = Arrows.SetScaleFactor/5
 Arrows.KeepRandomPoints = 1
 repA = Show()
 repA.ColorArrayName = 'GlyphVector'
-# also, create a colormap lookup table for future use. Again, only >v4.0
+# also, create a colormap lookup table for future use. Again, only >= v4.1
 try:
     wind = Arrows.PointData.GetArray('GlyphVector')
     lkpW = AssignLookupTable(wind,'X Ray')

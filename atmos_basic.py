@@ -205,21 +205,15 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     output_nc.ReplaceFillValueWithNan = 0
     MakeSelectable()
     RenameSource(fileName,output_nc)
-    
-    #CorrZ = CorrectZCoord(output_nc)
-    #MakeSelectable(CorrZ)
-    #RenameSource('CorrZ',CorrZ)
-    ################################################### CONTINUE TRANSFORMATION HERE ##################
+
     if len(logCoords)>0 :
         Coor = Cart2Log(src=output_nc,ratios=aspectRatios,basis=basis)
         RenameSource('LogCoor',Coor)
         MakeSelectable(Coor)
         return output_nc,Coor
     else:
-        CorrZ = CorrectZCoord(output_nc)
-        MakeSelectable(CorrZ)
-        RenameSource('CorrZ',CorrZ)
-        AspRat = GridAspectRatio(aspectRatios, CorrZ)
+        AspRat = GridAspectRatio(aspectRatios, output_nc)
+        MakeSelectable(AspRat)
         return output_nc,AspRat
         #Coor = []
     

@@ -64,6 +64,7 @@ o2_out.ReplaceFillValueWithNan = 1
 dataBds = o2_out.GetDataInformation().GetBounds()
 # instead of NaNs, there are -1e10 values in this file that we don't want
 o2_thresh = Threshold(o2_coor,ThresholdRange=[0,1])
+MakeSelectable()
 
 #the topography file is in cell data, need to convert to point data
 c2p=CellDatatoPointData(depth_coor)

@@ -21,12 +21,13 @@ def transformTopo(src=GetActiveSource(),moveXFunction=''):
     except:
         pass
 
-#######################################
+#########
+
 try:
     from atmos_basic import *
     from atmos_grids import *
 except:
-    pvAtmosPath='./'
+    pvAtmosPath='../'
     execfile(pvAtmosPath + 'atmos_basic.py')
     execfile(pvAtmosPath + 'atmos_grids.py')
 
@@ -41,7 +42,7 @@ dataFile = 'ocean_o2.nc'
 dataDims = ['xt_ocean','yt_ocean','st_ocean']
 # the values we will be interested in
 dataName = 'o2'
-dataContours = [0.2]
+dataContours = [1e-4]
 
 ## how would you like the transformation to work ##
 logCoord = [] #no logarithmic coordinates
@@ -56,17 +57,20 @@ aspRat   = [1,1,0.01]
 topoBds = depth_out.GetDataInformation().GetBounds()
 
 # data
-(wo_out,wo_coor)=LoadData(oceanPath+dataFile,ncDims=dataDims,aspectRatios=aspRat,logCoords=logCoord )
+(o2_out,o2_coor)=LoadData(oceanPath+dataFile,ncDims=dataDims,aspectRatios=aspRat,logCoords=logCoord )
 # we want to replace the fill values with NaNs here
-wo_out.ReplaceFillValueWithNan = 1
+o2_out.ReplaceFillValueWithNan = 1
 # get the bounds of the data file
-dataBds = wo_out.GetDataInformation().GetBounds()
+dataBds = o2_out.GetDataInformation().GetBounds()
+# instead of NaNs, there are -1e10 values in this file that we don't want
+o2_thresh = Threshold(o2_coor,ThresholdRange=[0,1])
 
 #the topography file is in cell data, need to convert to point data
 c2p=CellDatatoPointData(depth_coor)
 MakeSelectable()
 
 ### see if we have to move the topography file to align it with the data file
+### this is not necessary with the provided files, but might be with other files
 swapTopo = False
 if topoBds[0] != dataBds[0] or topoBds[1] != dataBds[1]:
     if topoBds[0] < dataBds[0]:
@@ -106,11 +110,11 @@ else:
 
 
 #### now add data to the ocean #######
-wo_cont = Contour(wo_coor, Isosurfaces=dataContours)
+o2_cont = Contour(o2_thresh, ContourBy=['POINTS',dataName], Isosurfaces=dataContours)
 rep=Show()
 rep.ColorArrayName = dataName
 try:
-    dataVal = wo_cont.PointData.GetArray(dataName)
+    dataVal = o2_cont.PointData.GetArray(dataName)
     lkpW = AssignLookupTable(dataVal,'GnYlRd')
     rep.LookupTable = lkpW
 except:

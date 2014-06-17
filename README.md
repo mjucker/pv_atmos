@@ -72,11 +72,12 @@ or 'from pv_atmos import atmos_grids'.
 Examples
 --------
 
-The examples directory contains two example scripts and the data file
-uv_daily.nc, which can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
-The example file contains the 3D structure of zonal and meridional wind
-over three daily time steps, created from GCM output. One script will
-create a spherical, one a rectangular plot of zonal wind. When using the
+The examples directory contains three example scripts and the data files
+uv_daily.nc, ocean_depth.nc, and ocean_o2.nc. The examples can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
+The example file contain the 3D structure of zonal and meridional wind
+over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model, and oxygen data provided by Thomas Froelicher. One script will
+create a spherical, one a rectangular plot of zonal wind. The ocean script will create a rectangular ocean basin.
+When using the
 example files, make sure to set "pvAtmosPath"
 within the example scripts to the directory containing atmos_basic.py
 and atmos_grids.py.

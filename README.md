@@ -75,7 +75,7 @@ Examples
 The examples directory contains three example scripts and the data files
 uv_daily.nc, ocean_depth.nc, and ocean_o2.nc. The examples can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
 The example file contain the 3D structure of zonal and meridional wind
-over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model, and oxygen data provided by Thomas Froelicher. One script will
+over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model, and oxygen data from GFDL's ESM2M model, provided by Thomas Froelicher. One script will
 create a spherical, one a rectangular plot of zonal wind. The ocean script will create a rectangular ocean basin.
 When using the
 example files, make sure to set "pvAtmosPath"

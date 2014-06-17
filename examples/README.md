@@ -5,3 +5,5 @@ example_sphere.py will construct a spherical geometry with "shells" to mimic of 
 example_ocean.py will constract a rectangular ocean basin, including all contients, and show an isosurface of oxygen concentration.
 
 When running the examples, be sure to set the variable pvAtmosPath to the path of the package files atmos_basic.py and atmos_grids.py.
+
+Note that in the interest of smaller files, all data has been regridded to much lower resolution.

@@ -528,7 +528,9 @@ Adds as many X,Y,Z grid lines as needed.
             BoxH = Zmax - Zmin 
             LabelTmp = a3DText(Text=AxisNames[2])
             RenameSource("ZLabel",LabelTmp)
-            LabelPushFac = len(str(max(zlevels)))+2
+            LabelPushFac = len(str(max(max(zlevels),abs(min(zlevels)))))+2
+            if max(zlevels) < abs(min(zlevels)):
+                LabelPushFac += 2
             Transx = [
                       Xmax , Xmax +LabelPushFac*absLsz, Xmin, Xmin-LabelPushFac*absLsz ]
             Transy = [Ymax+LabelPushFac*absLsz, Ymin, Ymin-LabelPushFac*absLsz, Ymax ]
@@ -536,7 +538,7 @@ Adds as many X,Y,Z grid lines as needed.
             Roty = [  90.0, -90.0,  90.0,  90.0 ]
             Rotz = [   0.0,  90.0, 180.0,  90.0 ]
             for i in range(len(Transx)):
-                Trans = [ Transx[i], Transy[i], BoxH*0.5-4.0*absLsz ]
+                Trans = [ Transx[i], Transy[i], Zmin + BoxH*0.5 -4.0*absLsz ]
                 Rot = [ Rotx[i], Roty[i], Rotz[i] ]
                 TransPres = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
                 

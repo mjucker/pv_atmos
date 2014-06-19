@@ -1,4 +1,12 @@
+#!/usr/bin/python
+# Filename: example_ocean.py
+#
+# Code by Martin Jucker, distributed under an MIT License
+# Any publication benefitting from this piece of code should cite
+# Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
+# Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
+# define a helper function for adjusting ocean bathymetry (topography) aspect ratio and color scheme
 def transformTopo(src=GetActiveSource(),moveXFunction=''):
     depth = Calculator(src)
     depth.Function = 'iHat*(coordsX'+moveXFunction+') + jHat*coordsY - kHat*abs('+str(depthVar)+')'
@@ -23,6 +31,7 @@ def transformTopo(src=GetActiveSource(),moveXFunction=''):
 
 #########
 
+#import pv_atmos
 try:
     from atmos_basic import *
     from atmos_grids import *
@@ -32,12 +41,15 @@ except:
     execfile(pvAtmosPath + 'atmos_grids.py')
 
 ## show me where the files are ##
+# path to ocean files
 oceanPath='./'
 
+# file containing bathymetry
 topoFile = 'ocean_depth.nc'
 topoDims = ['rlon','rlat']
 depthVar = 'deptho'
 
+# file containing oxygen data
 dataFile = 'ocean_o2.nc'
 dataDims = ['xt_ocean','yt_ocean','st_ocean']
 # the values we will be interested in
@@ -46,21 +58,21 @@ dataContours = [8e-5]
 
 ## how would you like the transformation to work ##
 logCoord = [] #no logarithmic coordinates
-aspRat   = [1,1,0.01]
+aspRat   = [1,1,0.01] # divide bathymetry by 100
 
 
 ### get the data ###
 
-# topography
+# bathymetry
 (depth_out,depth_coor)=LoadData(oceanPath+topoFile,ncDims=topoDims,logCoords=logCoord )
-# get the bounds of the topography
+# get the bounds of the topography. This is important if bathymetry and data files have different origins
 topoBds = depth_out.GetDataInformation().GetBounds()
 
 # data
 (o2_out,o2_coor)=LoadData(oceanPath+dataFile,ncDims=dataDims,aspectRatios=aspRat,logCoords=logCoord )
 # we want to replace the fill values with NaNs here
 o2_out.ReplaceFillValueWithNan = 1
-# get the bounds of the data file
+# get the bounds of the data file. Again important if different from bathymetry files
 dataBds = o2_out.GetDataInformation().GetBounds()
 # instead of NaNs, there are -1e10 values in this file that we don't want
 o2_thresh = Threshold(o2_coor,ThresholdRange=[0,1])
@@ -70,7 +82,7 @@ MakeSelectable()
 c2p=CellDatatoPointData(depth_coor)
 MakeSelectable()
 
-### see if we have to move the topography file to align it with the data file
+### see if we have to move the bathymetry file to align it with the data file
 ### this is not necessary with the provided files, but might be with other files
 swapTopo = False
 if topoBds[0] != dataBds[0] or topoBds[1] != dataBds[1]:
@@ -101,7 +113,7 @@ if topoBds[0] != dataBds[0] or topoBds[1] != dataBds[1]:
     swapTopo = True
 
 
-### work on the topography #####
+### work on the bathymetry #####
 
 if swapTopo :
     transformTopo(moveClip,moveXFunction)

@@ -2,3 +2,5 @@
 *.pyc
 
 sandbox.py
+
+*.pvsm

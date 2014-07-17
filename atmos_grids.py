@@ -340,7 +340,7 @@ def AddLonLabel(lon, LabelSize=5.0, bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratio
     return label,trans1,trans2
 
 # move generic label with given position and rotation
-def AddAxisLabel(Labl,Trans,Rot, LabelSize=5.0, AxisColor=[0,0,0]):
+def AddAxisLabel(Labl,Trans,Rot, AxisColor=[0,0,0], LabelSize=5.0,):
     """Move a generic label.
 
     Modifies Labl according to the transformations Trans, Rot, LabelSize:
@@ -540,7 +540,7 @@ Adds as many X,Y,Z grid lines as needed.
             for i in range(len(Transx)):
                 Trans = [ Transx[i], Transy[i], Zmin + BoxH*0.5 -4.0*absLsz ]
                 Rot = [ Rotx[i], Roty[i], Rotz[i] ]
-                TransPres = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
+                TransPres = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
                 
     # for other coordinate labels
     Z = Zmin  - absLsz*3.0
@@ -557,15 +557,15 @@ Adds as many X,Y,Z grid lines as needed.
         #Y axis label
         if LabelSize > 0.0 :
             LabelTmp = a3DText(Text=AxisNames[1])
-            RenameSource("LatLabel",LabelTmp)
+            RenameSource("YLabel",LabelTmp)
             midY = 0.5*(Ymax+Ymin)
             Trans = [Xmax , midY-2.5*absLsz, Z]
             Rot = [ 90.0, 90.0, 0.0 ]
-            TransLat = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
+            TransLat = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
             
             Trans = [Xmin, midY+2.5*absLsz, Z]
             Rot = [ 90.0,-90.0, 0.0 ]
-            TransLat = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
+            TransLat = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
 
     #X grid
     if len(xlevels) > 0 :
@@ -580,14 +580,14 @@ Adds as many X,Y,Z grid lines as needed.
         #X axis label
         if LabelSize > 0.0 :
             LabelTmp = a3DText(Text=AxisNames[0])
-            RenameSource("YLabel",LabelTmp)
+            RenameSource("XLabel",LabelTmp)
             Trans = [0.5*(Xmin+Xmax )-3.0*absLsz, Ymin, Z]
             Rot = [ 90.0,   0.0, 0.0 ]
-            TransLon = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
+            TransLon = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
             
             Trans = [0.5*(Xmin+Xmax)+3.0*absLsz, Ymax, Z]
             Rot = [ 90.0, 180.0, 0.0 ]
-            TransLon = AddAxisLabel(LabelTmp, Trans, Rot, absLsz)
+            TransLon = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
 
 
 

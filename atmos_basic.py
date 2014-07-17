@@ -182,12 +182,17 @@ def MakeSelectable(src=GetActiveSource()):
 def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=[1e3] ):
     """Load netCDF file, convert coordinates into useful aspect ratio.
 
-    Adds file output_nc, Calculator CorrZ, Calculator LogP, and Calculator AspRat to the pipeline
+    Adds file output_nc, and Calculator LogP or Calculator AspRat to the pipeline
+    
+    INPUTS:
     fileName         -- full path and file name of data to be read
     ncDims           -- names of the dimensions within the netCDF file. Time should be excluded. Ordering [x,y,z]
     aspectRatios     -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
     logCoords        -- index/indices of dimension(s) to be logarithmic
     basis            -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
+    OUTPUTS:
+    output_nc        -- netCDF reader object with the file data as read
+    Coor/AspRat      -- Calculator filter corresponding to the transformed coordinates
     """ 
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round
     outputDimensions = ncDims[::-1]

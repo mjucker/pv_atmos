@@ -309,3 +309,7 @@ def ShowAll():
     """Make all objects in pipeline browser visible."""
     for src in GetSources().values():
         Show(src)
+#
+def ExtractBounds(src):
+    bounds = src.GetDataInformation().GetBounds()
+    return bounds

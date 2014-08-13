@@ -436,7 +436,7 @@ def WaterMark(waterMark, markRadius=1, markPosition=[250, 10], markSize=1.0):
     Mark2Sphere = Cart2Spherical(0,Transform2)
     Text_disp=Show()
     Text_disp.DiffuseColor = [0.0, 0.0, 0.0]
-    Text_disp.Opacity=0.5
+    Text_disp.Opacity=0.1
 
 ######## combine some of the above to create a suite of atmospheric shells. #########################
 ########  this replaces the grid in spherical geometry                      #########################
@@ -483,7 +483,7 @@ def SphericalShells(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], src=Get
                 bas = basis[0]
             labelRadius = Lin2Log(min(shellValues),ratios[2],bas)
         else:
-            labelRadius = min(shellValues)*ratios[2]
+            labelRadius = radius + shellValues[-1]*ratios[2]
         WaterMark(waterMark, labelRadius, markPosition, labelSize)
     return Planes
 

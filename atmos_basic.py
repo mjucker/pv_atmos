@@ -310,6 +310,52 @@ def ShowAll():
     for src in GetSources().values():
         Show(src)
 #
-def ExtractBounds(src):
+def ExtractBounds(src=GetActiveSource()):
+    """Return the axis extremities (bounds) of any source filter
+    
+    Inputs:
+        src    - filter to extract bounds of
+    Outputs:
+        bounds - list of (xmin,xmax [,ymin,ymax [,zmin,zmax]])"""
     bounds = src.GetDataInformation().GetBounds()
     return bounds
+#
+def Sphere2xyz(coords):
+    """Compute (x,y,z) from coords=(r,lam,phi), where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
+        and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
+        Also computes the normal along the radial direction (useful for placing and orienting the camera).
+    
+    Inputs:
+        coords - list of (radius,lambda,phi)
+    Outputs:
+        xyzPos - list of corresponding (x,y,z)
+        normal - list of (xn,yn,zn) along radial direction"""
+    from numpy import pi,sin,cos,array
+    rr=coords[0];lam=coords[1];phi=coords[2]
+    xyzPos = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
+    rr=rr+1
+    p1     = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
+    normal = list(array(p1) - array(xyzPos))
+    return xyzPos,normal
+#
+def xyz2Sphere(coords):
+    """Compute (r,lam,phi) from coords=(x,y,z), where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
+        and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
+        
+    Inputs:
+        coords - list of (x,y,z)
+    Outputs:
+        sphPos - list of corresponding (r,lam,phi)"""
+    from numpy import sqrt,pi,sin,cos,arcsin,arctan
+    x=coords[0];y=coords[1];z=coords[2]
+    r   = sqrt(x*x + y*y + z*z)
+    if x > 0:
+        phi = arctan(y/x)
+    elif x < 0:
+        phi = pi + arctan(y/x)
+    elif x == 0 and y > 0:
+        phi = 0.5*pi
+    elif x == 0 and y < 0:
+        phi = 1.5*pi
+    lam = arcsin(z/r)
+    return (r,lam*180/pi,phi*180/pi)

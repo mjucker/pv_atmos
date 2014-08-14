@@ -9,7 +9,7 @@
 # Python interface for ParaView (www.paraview.org). Provides means to add axes in Cartesian or spherical coordinates. Needs atmos_basic.py
 
 ##### needed modules: atmos_basic ####################
-
+from paraview.simple import *
 ##------------ General functions for adding/extracting and labeling planes ---------------------
 
 # add a plane perpendicular to the Z direction

@@ -212,7 +212,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     RenameSource(fileName,output_nc)
 
     if len(logCoords)>0 :
-        Coor = Cart2Log(src=output_nc,ratios=aspectRatios,basis=basis)
+        Coor = Cart2Log(src=output_nc,ratios=aspectRatios,logCoords=logCoords,basis=basis)
         RenameSource('LogCoor',Coor)
         MakeSelectable(Coor)
         return output_nc,Coor

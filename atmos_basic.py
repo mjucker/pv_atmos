@@ -222,6 +222,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     RenameSource(fileName,output_nc)
     
     transCoor = TransformCoords(src=output_nc,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
+    MakeSelectable()
 	
     if len(logCoords)>0 :
         RenameSource('LogCoor',transCoor)

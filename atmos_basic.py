@@ -142,12 +142,12 @@ def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
     """Adjust aspect ratio of bounding box (axes).
 
     Inputs are:
-    bounds     -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
-    ratios     -- Corrections to actually plotted axes
-    logCoord   -- Which of the coordinates is in log scale [array]. Default is 3rd (pressure)
-    basis      -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+        bounds     -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+        ratios     -- Corrections to actually plotted axes
+        logCoord   -- Which of the coordinates is in log scale [array]. Default is 3rd (pressure)
+        basis      -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
     Outputs are:
-    Xmin,Xmax,Ymin,Ymax,Zmin,Zmax of axes
+        Xmin,Xmax,Ymin,Ymax,Zmin,Zmax of axes
     """
     boundsIn=bounds[:]
     #first, deal with log scale coordinates
@@ -171,6 +171,16 @@ def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
     else:
         return Xmin,Xmax,Ymin,Ymax
 
+# transform coordinates: logarithmic, aspect ratio
+def TransformCoords(src=GetActiveSource(), aspectRatios=[1,1,1], logCoords=[2], basis=1e3):
+    """Transform the coordinates depending on whether or not there are logarithmic coordinates"""
+    if len(logCoords)>0 :
+        transCoor = Cart2Log(src=src,ratios=aspectRatios,logCoords=logCoords,basis=basis)
+    else:
+        transCoor = GridAspectRatio(ratios=aspectRatios, src=src)
+	return transCoor
+
+#
 def MakeSelectable(src=GetActiveSource()):
     """Make filter selectable in pipeline browser, but don't show it."""
     rep=Show(src)
@@ -185,14 +195,14 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     Adds file output_nc, and Calculator LogP or Calculator AspRat to the pipeline
     
     INPUTS:
-    fileName         -- full path and file name of data to be read
-    ncDims           -- names of the dimensions within the netCDF file. Time should be excluded. Ordering [x,y,z]
-    aspectRatios     -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
-    logCoords        -- index/indices of dimension(s) to be logarithmic
-    basis            -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
+        fileName      -- full path and file name of data to be read
+        ncDims        -- names of the dimensions within the netCDF file. Time should be excluded. Ordering [x,y,z]
+        aspectRatios  -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
+        logCoords     -- index/indices of dimension(s) to be logarithmic
+        basis         -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
     OUTPUTS:
-    output_nc        -- netCDF reader object with the file data as read
-    Coor/AspRat      -- Calculator filter corresponding to the transformed coordinates
+        output_nc     -- netCDF reader object with the file data as read
+        transCoor     -- Calculator filter corresponding to the transformed coordinates
     """ 
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round
     outputDimensions = ncDims[::-1]
@@ -210,26 +220,14 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     output_nc.ReplaceFillValueWithNan = 0
     MakeSelectable()
     RenameSource(fileName,output_nc)
-
-    if len(logCoords)>0 :
-        Coor = Cart2Log(src=output_nc,ratios=aspectRatios,basis=basis)
-        RenameSource('LogCoor',Coor)
-        MakeSelectable(Coor)
-        return output_nc,Coor
-    else:
-        AspRat = GridAspectRatio(aspectRatios, output_nc)
-        MakeSelectable(AspRat)
-        return output_nc,AspRat
-        #Coor = []
     
-    #if len(logCoords)>0 :
-    #    AspRat = GridAspectRatio(aspectRatios, Coor)
-    #else:
-    #    AspRat = GridAspectRatio(aspectRatios, CorrZ)
-    #RenameSource('AspectRatio',AspRat)
-    #MakeSelectable(AspRat)
-
-#return output_nc,CorrZ,Coor,AspRat
+    transCoor = TransformCoords(src=output_nc,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
+	
+    if len(logCoords)>0 :
+        RenameSource('LogCoor',transCoor)
+    else:
+        RenameSource('TransCoor',transCoor)
+    return output_nc,transCoor
 
 def loadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], basis=1e3 ):
     """This is deprecated, please use LoadData()"""
@@ -238,25 +236,59 @@ def loadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], basi
     warnings.warn("loadData() is deprecated, please use LoadData() in the future", DeprecationWarning)
     return output_nc,CorrZ,Coor,AspRat
 
+######## convert 2D into 3D data using a variable as third dimension ##############
+
+def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=1e3, src=GetActiveSource() ):
+    """Expand any 2D dataset into 3D with the values of a field.
+        
+        Make3D takes a 2D dataset, and adds a third dimension corresponding to a data field.
+        
+        INPUTS:
+            expandVar    -- name of the variable to use as third dimension
+            expandDir    -- direction in which to expand {'x','y','z'}
+            aspectRatios -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
+            logCoords    -- index/indices of dimension(s) to be logarithmic
+            basis        -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
+            src          -- source fiter to attach to
+        OUPUTS:
+            trans3d      -- a Calculator filter with the transformed 3D field
+    """
+	make3d = Calculator(src)
+	if expandDir.lower() == 'x':
+		make3d.Function = 'iHat*'+expandVar+' + jHat*coordsY + kHat*coordsZ)'
+	elif expandDir.lower() == 'y':
+		make3d.Function = 'iHat*coordsX + jHat*'+expandVar+' + kHat*coordsZ)'
+	elif expandDir.lower() == 'z':
+		make3d.Function = 'iHat*coordsX + jHat*coordsY + kHat*'+expandVar
+	else:
+		raise Exception("Make3D: expandDir has to be one of x,y,z, but is "+expandDir)
+	make3d.CoordinateResults = 1
+	
+	trans3d = TransformCoords(src=make3d,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
+	
+	return trans3d
+
 ######## some other usefull tools #################################################
 
-# 
+# transform winds from SI to plot units
 def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', ratios=[1,1,1]):
     """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. 
 
     Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is given. 
-    src                     -- filter in pipeline to attach to
-    zonalComponentName      -- name of zonal wind component in pipeline
-    meridionalComponentName -- name of meridional wind component in pipeline
-    secondsPerTimeStep      -- duration of time step in seconds: 86400 for daily
-    verticalComponentName   -- name of vertical component, or 'none'
-    ratios                  -- Corrections to actually plotted axes
-    Adds two Calculators to the pipeline:
-    W     -- wind vector calculation
-    normW -- magnitude of wind vector
-    Adds two slices to the pipeline to remove division by zero close to poles:
-    clipS -- remove south pole
-    clipN -- remove north pole
+    INPUTS:
+        src                     -- filter in pipeline to attach to
+        zonalComponentName      -- name of zonal wind component in pipeline
+        meridionalComponentName -- name of meridional wind component in pipeline
+        secondsPerTimeStep      -- duration of time step in seconds: 86400 for daily
+        verticalComponentName   -- name of vertical component, or 'none'
+        ratios                  -- Corrections to actually plotted axes
+    OUTPUTS:
+        Adds two Calculators to the pipeline:
+        W     -- wind vector calculation
+        normW -- magnitude of wind vector
+        Adds two slices to the pipeline to remove division by zero close to poles:
+        clipS -- remove south pole
+        clipN -- remove north pole
     """
     W=Calculator(src)
     if verticalComponentName != 'none' :
@@ -292,8 +324,77 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
     clipN.ClipType.Origin  = [0.0, 80.0*ratios[1], 0.0]
     RenameSource('clipN',clipN)
     MakeSelectable(clipN)
-    return W,norm,clipS,clipN
+return W,norm,clipS,clipN
 
+# extract the boundaries of a filter
+def ExtractBounds(src=GetActiveSource()):
+    """Return the axis extremities (bounds) of any source filter
+        
+        Inputs:
+        src    - filter to extract bounds of
+        Outputs:
+        bounds - list of (xmin,xmax [,ymin,ymax [,zmin,zmax]])"""
+    bounds = src.GetDataInformation().GetBounds()
+    return bounds
+
+## working with a spherical geometry: conversion functions
+def Sphere2xyz(coords, lam, phi):
+    """Compute (x,y,z) from coords=(r,lam,phi) or r,lam,phi, where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
+        and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
+        Also computes the normal along the radial direction (useful for placing and orienting the camera).
+        
+        INPUTS:
+            coords - list of (radius,lambda,phi) or radius
+            lam    - lambda (declination, latitude) if coords is radius
+            phi    - phi (azimuth, longitude) if coords is radius
+        OUTPUTS:
+            xyzPos - list of corresponding (x,y,z)
+            normal - list of (xn,yn,zn) along radial direction
+    """
+    from numpy import pi,sin,cos,array
+    if len(coords) == 3:
+        rr=coords[0];lam=coords[1];phi=coords[2]
+    elif len(coords) == 1:
+        rr=coords
+    else:
+        raise Exception("Sphere2xyz: coords has to be a list of length 3 (r,lambda,phi), or a scalar (radius)")
+    xyzPos = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
+    rr=rr+1
+    p1     = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
+    normal = list(array(p1) - array(xyzPos))
+    return xyzPos,normal
+#
+def xyz2Sphere(coords, y, z):
+    """Compute (r,lam,phi) from coords=(x,y,z) or x,y,z, where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
+        and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
+        
+        INPUTS:
+            coords - list of (x,y,z) or x
+            y      - y coordinate if coords is x
+            z      - z coordinate if coords is x
+        OUTPUTS:
+            sphPos - list of corresponding (r,lam,phi)
+    """
+    from numpy import sqrt,pi,sin,cos,arcsin,arctan
+    if len(coords == 3):
+        x=coords[0];y=coords[1];z=coords[2]
+    elif len(coords) == 1:
+        x = coords
+    else:
+        raise Exception("xyz2Sphere: coords has to be a list of length 3 (x,y,z), or a scalar (x)")
+    r   = sqrt(x*x + y*y + z*z)
+    if x > 0:
+        phi = arctan(y/x)
+    elif x < 0:
+        phi = pi + arctan(y/x)
+    elif x == 0 and y > 0:
+        phi = 0.5*pi
+    elif x == 0 and y < 0:
+        phi = 1.5*pi
+    lam = arcsin(z/r)
+    return (r,lam*180/pi,phi*180/pi)
+
+## some simple helper functions
 #
 def DeleteAll():
     """Delete all objects in the pipeline browser."""
@@ -309,53 +410,3 @@ def ShowAll():
     """Make all objects in pipeline browser visible."""
     for src in GetSources().values():
         Show(src)
-#
-def ExtractBounds(src=GetActiveSource()):
-    """Return the axis extremities (bounds) of any source filter
-    
-    Inputs:
-        src    - filter to extract bounds of
-    Outputs:
-        bounds - list of (xmin,xmax [,ymin,ymax [,zmin,zmax]])"""
-    bounds = src.GetDataInformation().GetBounds()
-    return bounds
-#
-def Sphere2xyz(coords):
-    """Compute (x,y,z) from coords=(r,lam,phi), where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
-        and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
-        Also computes the normal along the radial direction (useful for placing and orienting the camera).
-    
-    Inputs:
-        coords - list of (radius,lambda,phi)
-    Outputs:
-        xyzPos - list of corresponding (x,y,z)
-        normal - list of (xn,yn,zn) along radial direction"""
-    from numpy import pi,sin,cos,array
-    rr=coords[0];lam=coords[1];phi=coords[2]
-    xyzPos = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
-    rr=rr+1
-    p1     = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
-    normal = list(array(p1) - array(xyzPos))
-    return xyzPos,normal
-#
-def xyz2Sphere(coords):
-    """Compute (r,lam,phi) from coords=(x,y,z), where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
-        and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
-        
-    Inputs:
-        coords - list of (x,y,z)
-    Outputs:
-        sphPos - list of corresponding (r,lam,phi)"""
-    from numpy import sqrt,pi,sin,cos,arcsin,arctan
-    x=coords[0];y=coords[1];z=coords[2]
-    r   = sqrt(x*x + y*y + z*z)
-    if x > 0:
-        phi = arctan(y/x)
-    elif x < 0:
-        phi = pi + arctan(y/x)
-    elif x == 0 and y > 0:
-        phi = 0.5*pi
-    elif x == 0 and y < 0:
-        phi = 1.5*pi
-    lam = arcsin(z/r)
-    return (r,lam*180/pi,phi*180/pi)

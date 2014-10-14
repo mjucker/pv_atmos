@@ -56,17 +56,30 @@ distribution.
 Installation & Use
 ------------------
 
-1) For use in the ParaView python console: No python installation and/or
+This is a regular python package, which can be installed with [pip](https://pypi.python.org/pypi/pip).
+However, be advised that the functions depend on paraview.simple, which is not available as independent python package.
+Nevertheless, once installed, pv_atmos can be imported inside the ParaView python console.
+
+1) Using pip: pip install pv_atmos
+
+2) Manual python package install: Download the .zip file from this repository, and unpack it. Run 'python setup.py install' for installation.
+
+With any of these methods, you can now load pv_atmos in the ParaView python console like this:
+
+>>> from pv_atmos.atmos_basic import *
+>>> from pv_atmos.atmos_grids import *
+
+or:
+
+>>> import pv_atmos.atmos_basic as ab
+>>> import pv_atmos.atmos_grids as ag
+
+3) For use in the ParaView python console without installation: No python installation and/or
 command shell is needed. Download the .zip file, unpack it where
 convenient. Start ParaView, and open the Python Shell contained within
 ParaView. If the pv_atmos files are not unpacked in the run directory,
 use the "run script" button and choose atmos_basic.py first,
 atmos_grids.py second, and you are ready to use the pv_atmos functions.
-
-2) For use as independent python package: Run 'python setup.py install'
-in the command line within the downloaded directory. This will install
-the package pv_atmos and you can run 'from pv_atmos import atmos_basic'
-or 'from pv_atmos import atmos_grids'.
 
 
 Examples

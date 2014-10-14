@@ -66,13 +66,13 @@ Nevertheless, once installed, pv_atmos can be imported inside the ParaView pytho
 
 With any of these methods, you can now load pv_atmos in the ParaView python console like this:
 
->>> from pv_atmos.atmos_basic import *
->>> from pv_atmos.atmos_grids import *
+$ from pv_atmos.atmos_basic import *
+$ from pv_atmos.atmos_grids import *
 
 or:
 
->>> import pv_atmos.atmos_basic as ab
->>> import pv_atmos.atmos_grids as ag
+$ import pv_atmos.atmos_basic as ab
+$ import pv_atmos.atmos_grids as ag
 
 3) For use in the ParaView python console without installation: No python installation and/or
 command shell is needed. Download the .zip file, unpack it where

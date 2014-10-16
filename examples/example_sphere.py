@@ -7,9 +7,15 @@
 # Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
 ## load atmos modules ##
-# set path to the locations of atmos_grids.py and atmos_basic.py
-pvAtmosPath = '../'
-try: from atmos_grids import *
+# set path to the locations of atmos_grids.py, atmos_basic.py, and the examples folder
+# you can define this in the session or here
+try:
+    pvAtmosPath
+except:
+    pvAtmosPath = '../'
+try: #is pv_atmos installed?
+    from pv_atmos.atmos_basic import *
+    from pv_atmos.atmos_grids import *
 except:
     execfile(pvAtmosPath + 'atmos_basic.py')
     execfile(pvAtmosPath + 'atmos_grids.py')
@@ -22,6 +28,10 @@ radius = 1
 
 ## now load example file ##
 fileName = pvAtmosPath + 'examples/uv_daily.nc'
+# check if files exist
+import os.path
+if not os.path.isfile(fileName):
+    raise ValueError, fileName+' does not exist!'
 # the file is 3D+time, in pressure coordinates, and we adjust the axis aspect ratio
 (output_nc,Coor) = LoadData(fileName, ['lon','lat','pfull'], ratio, logCoord, basis)
 # we have now read in a 4D file, with log-pressure in the Z-direction

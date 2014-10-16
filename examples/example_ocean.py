@@ -31,18 +31,23 @@ def transformTopo(src=GetActiveSource(),moveXFunction=''):
 
 #########
 
-#import pv_atmos
+# set path to the locations of atmos_grids.py, atmos_basic.py, and the examples folder
+# you can define this in the session or here
 try:
-    from atmos_basic import *
-    from atmos_grids import *
+    pvAtmosPath
 except:
-    pvAtmosPath='../'
+    pvAtmosPath = '../'
+#import pv_atmos
+try: #is pv_atmos installed?
+    from pv_atmos.atmos_basic import *
+    from pv_atmos.atmos_grids import *
+except:
     execfile(pvAtmosPath + 'atmos_basic.py')
     execfile(pvAtmosPath + 'atmos_grids.py')
 
-## show me where the files are ##
+## show me where the files are, relative to pvAtmosPath ##
 # path to ocean files
-oceanPath='./'
+oceanPath = pvAtmosPath + 'examples/'
 
 # file containing bathymetry
 topoFile = 'ocean_depth.nc'
@@ -62,6 +67,14 @@ aspRat   = [1,1,0.01] # divide bathymetry by 100
 
 
 ### get the data ###
+
+# check if files exist
+import os.path
+if not os.path.isfile(oceanPath+topoFile):
+    raise ValueError, oceanPath+topoFile+' does not exist!'
+if not os.path.isfile(oceanPath+dataFile):
+    raise ValueError, oceanPath+dataFile+' does not exist!'
+
 
 # bathymetry
 (depth_out,depth_coor)=LoadData(oceanPath+topoFile,ncDims=topoDims,logCoords=logCoord )

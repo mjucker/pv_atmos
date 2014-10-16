@@ -4,3 +4,9 @@
 sandbox.py
 
 *.pvsm
+
+build/lib/pv_atmos/__init__.py
+
+build/lib/pv_atmos/atmos_basic.py
+
+build/lib/pv_atmos/atmos_grids.py

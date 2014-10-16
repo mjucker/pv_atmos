@@ -12,6 +12,59 @@
 from paraview.simple import *
 ##------------ General functions for adding/extracting and labeling planes ---------------------
 
+# do the math for logarithmic coordinates - no coordinate conversion
+def Lin2Log(x, ratio=1.0, basis=1e3):
+    """Convert linear coordinate to logarithmic coordinate value
+        
+        x     -- the coordinate value to convert
+        ratio -- the multiplicative factor after log10
+        basis -- basis to normalize argument to logarithm (ie defines origin).
+        """
+    import math
+    level = abs(math.log10(x/basis))*ratio
+    return level
+
+def Pressure2Z(plevel, ratio=1.0, basis=1e3):
+    """Pressure2Z() is deprecated. Use Lin2Log() instead."""
+    import warnings
+    warnings.warn("Pressure2Z() is deprecated. Use Lin2Log() instead.",DeprecationWarning)
+    level = Lin2Log(plevel, ratio, basis)
+    return level
+
+# adjust aspect ratio of bounding box vector
+def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
+    """Adjust aspect ratio of bounding box (axes).
+        
+        Inputs are:
+        bounds     -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+        ratios     -- Corrections to actually plotted axes
+        logCoord   -- Which of the coordinates is in log scale [array]. Default is 3rd (pressure)
+        basis      -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+        Outputs are:
+        Xmin,Xmax,Ymin,Ymax,Zmin,Zmax of axes
+        """
+    boundsIn=bounds[:]
+    #first, deal with log scale coordinates
+    for pp in range(len(logCoord)):
+        if len(boundsIn) > 2*logCoord[pp]:
+            if len(basis) > 0 :
+                bas = basis[pp]
+            else:
+                bas = basis[0]
+            boundsIn[logCoord[pp]*2  ] = Lin2Log(bounds[logCoord[pp]*2  ],1.0,bas)
+            boundsIn[logCoord[pp]*2+1] = Lin2Log(bounds[logCoord[pp]*2+1],1.0,bas)
+    #then apply aspect ratios
+    Xmin   = boundsIn[0]*ratios[0]
+    Xmax  = boundsIn[1]*ratios[0]
+    Ymin   = boundsIn[2]*ratios[1]
+    Ymax    = boundsIn[3]*ratios[1]
+    if len(bounds) == 6 :
+        Zmin = boundsIn[4]*ratios[2]
+        Zmax = boundsIn[5]*ratios[2]
+        return Xmin,Xmax,Ymin,Ymax,Zmin,Zmax
+    else:
+        return Xmin,Xmax,Ymin,Ymax
+
 # add a plane perpendicular to the Z direction
 def AddZPlane(z, bounds=[0.0,360.0,-90.0,90.0], ratios=[1,1,1], logCoord=[2], basis=[1e3], data=0, src=GetActiveSource(), AxisColor=[0,0,0], AxisWidth=1.0):
     """Extract or add horizonal plane, i.e. perpendicular to Z direction.
@@ -393,7 +446,7 @@ def SphericalLabels(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], shellVa
             labelRadius = radius + 1.01*ps*ratios[2]
         txt=a3DText()
         txt.Text = str(abs(ps))
-        MakeSelectable(txt)
+        rep=Show(txt);rep.Visibility=0
         RenameSource('Text'+str(ps)+'[Z]',txt)
         Transform1=Transform(txt)
         Transform1.Transform="Transform"
@@ -403,7 +456,7 @@ def SphericalLabels(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], shellVa
         else:
             Transform1.Transform.Scale     =[2.0*labelSize,2.0*labelSize, 1.0*labelSize]
         Transform1.Transform.Translate =[labelPosition[0], labelPosition[1], labelRadius]
-        MakeSelectable(Transform1)
+        rep=Show(Transform1);rep.Visibility=0
         Text2Sphere = Cart2Spherical(0,Transform1)
         Text_disp=Show()
         Text_disp.DiffuseColor = [0.0, 0.0, 0.0]
@@ -426,13 +479,13 @@ def WaterMark(waterMark, markRadius=1, markPosition=[250, 10], markSize=1.0):
     """
     txt=a3DText()
     txt.Text = waterMark
-    MakeSelectable()
+    rep=Show();rep.Visibility=0
     RenameSource('WaterMark',txt)
     Transform2=Transform()
     Transform2.Transform="Transform"
     Transform2.Transform.Scale     =[2.0*markSize,2.0*markSize, 1.0*markSize]
     Transform2.Transform.Translate =[markPosition[0], markPosition[1], markRadius]
-    MakeSelectable(Transform2)
+    rep=Show(Transform2);rep.Visibility=0
     Mark2Sphere = Cart2Spherical(0,Transform2)
     Text_disp=Show()
     Text_disp.DiffuseColor = [0.0, 0.0, 0.0]
@@ -464,7 +517,7 @@ def SphericalShells(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], src=Get
     Planes=[]
     for ps in shellValues:
         TropoSlice = AddZPlane(ps, ratios=ratios, logCoord=logCoord, basis=basis, data=1, src=src)
-        MakeSelectable(TropoSlice)
+        rep=Show(TropoSlice);rep.Visibility=0
         RenameSource(str(ps)+'[Z]',TropoSlice)
         Cart2Sphere = Cart2Spherical(radius,TropoSlice)
         TropoSlice_disp=Show()

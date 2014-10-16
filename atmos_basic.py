@@ -47,24 +47,6 @@ def ConvertPressureString(pString, ratio=1.0, basis=1e3):
     expression = expression+'*'+str(ratio)
     return expression
 
-# do the math for logarithmic coordinates - no coordinate conversion
-def Lin2Log(x, ratio=1.0, basis=1e3):
-    """Convert linear coordinate to logarithmic coordinate value
-        
-        x     -- the coordinate value to convert
-        ratio -- the multiplicative factor after log10
-        basis -- basis to normalize argument to logarithm (ie defines origin).
-    """
-    level = abs(log10(x/basis))*ratio
-    return level
-
-def Pressure2Z(plevel, ratio=1.0, basis=1e3):
-    """Pressure2Z() is deprecated. Use Lin2Log() instead."""
-    import warnings
-    warnings.warn("Pressure2Z() is deprecated. Use Lin2Log() instead.",DeprecationWarning)
-    level = Lin2Log(plevel, ratio, basis)
-    return level
-
 # do the coordinate conversion inside a Calculator
 def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[2], basis=[1e3]):
     """Convert between logarithmic and linear coordinates. Also applies aspect ratio correction.
@@ -136,41 +118,7 @@ def GridAspectRatio(ratios, src=GetActiveSource()):
         calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY'
     calc.CoordinateResults = 1
     return calc
-
-# adjust aspect ratio of bounding box vector
-def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
-    """Adjust aspect ratio of bounding box (axes).
-
-    Inputs are:
-    bounds     -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
-    ratios     -- Corrections to actually plotted axes
-    logCoord   -- Which of the coordinates is in log scale [array]. Default is 3rd (pressure)
-    basis      -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
-    Outputs are:
-    Xmin,Xmax,Ymin,Ymax,Zmin,Zmax of axes
-    """
-    boundsIn=bounds[:]
-    #first, deal with log scale coordinates
-    for pp in range(len(logCoord)):
-        if len(boundsIn) > 2*logCoord[pp]:
-            if len(basis) > 0 :
-                bas = basis[pp]
-            else:
-                bas = basis[0]
-            boundsIn[logCoord[pp]*2  ] = Lin2Log(bounds[logCoord[pp]*2  ],1.0,bas)
-            boundsIn[logCoord[pp]*2+1] = Lin2Log(bounds[logCoord[pp]*2+1],1.0,bas)
-    #then apply aspect ratios
-    Xmin   = boundsIn[0]*ratios[0]
-    Xmax  = boundsIn[1]*ratios[0]
-    Ymin   = boundsIn[2]*ratios[1]
-    Ymax    = boundsIn[3]*ratios[1]
-    if len(bounds) == 6 :
-        Zmin = boundsIn[4]*ratios[2]
-        Zmax = boundsIn[5]*ratios[2]
-        return Xmin,Xmax,Ymin,Ymax,Zmin,Zmax
-    else:
-        return Xmin,Xmax,Ymin,Ymax
-
+#
 def MakeSelectable(src=GetActiveSource()):
     """Make filter selectable in pipeline browser, but don't show it."""
     rep=Show(src)
@@ -220,14 +168,6 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
         AspRat = GridAspectRatio(aspectRatios, output_nc)
         MakeSelectable(AspRat)
         return output_nc,AspRat
-        #Coor = []
-    
-    #if len(logCoords)>0 :
-    #    AspRat = GridAspectRatio(aspectRatios, Coor)
-    #else:
-    #    AspRat = GridAspectRatio(aspectRatios, CorrZ)
-    #RenameSource('AspectRatio',AspRat)
-    #MakeSelectable(AspRat)
 
 #return output_nc,CorrZ,Coor,AspRat
 

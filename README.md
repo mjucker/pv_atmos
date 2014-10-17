@@ -148,15 +148,15 @@ This is a regular python package, which can be installed with [pip](https://pypi
 However, be advised that the functions depend on paraview.simple, which is not available as independent python package. See below how to run pv_atmos once it's installed.
 
 
-1) Using pip: pip install pv_atmos
+1) Using pip: `pip install pv_atmos`
 
-2) Manual python package install: Download the .zip file from this repository, and unpack it. Run 'python setup.py install' for installation.
+2) Manual python package install: Download the .zip file from this repository, and unpack it. Run `python setup.py install` for installation.
 
 3) For use in the ParaView python console without installation: No python installation and/or
 command shell is needed. Download the .zip file, unpack it where
 convenient. Start ParaView, and open the Python Shell contained within
 ParaView. If the pv_atmos files are not unpacked in the run directory,
-use the "run script" button and choose either basic.py or grids.py (or one after the other of course), and you are ready to use the pv_atmos functions.
+use the `Run Script` button and choose either `basic.py` or `grids.py` (or one after the other of course), and you are ready to use the pv_atmos functions.
 
 # Use
 
@@ -166,18 +166,20 @@ Follow any of the below bullet points to get going with pv_atmos.
 
 - Open `Tools -> Python Shell`
 - Then:
+```
 $ from pv_atmos.basic import *
 $ from pv_atmos.grids import *
+```
 - Or: click on `Run Script`, and double-click on `basic.py` and `grids.py`
 
 * Run the version of python shipped with ParaView: This will automatically adjust your python path, and paraview.simple will be recognized:
-
+```
 $ /Applications/paraview.app/Contents/bin/pvpython
 $ from pv_atmos.basic import *
 $ from pv_atmos.grids import *
-
+```
 * Set the PYTHONPATH to where paraview.simple resides. On a Mac, this is typically
-
+```
 $ export DYLD_FALLBACK_LIBRARY_PATH="/Applications/paraview.app/Contents/Libraries"
 $ export LD_LIBRARY_PATH="/Applications/paraview.app/Contents/Libraries"
 $ export DYLD_FALLBACK_FRAMEWORK_PATH="/Applications/paraview.app/Contents/Frameworks"
@@ -185,17 +187,17 @@ $ export PYTHONPATH="/Applications/paraview.app/Contents/Python:/Applications/pa
 $ python
 $ from pv_atmos.basic import *
 $ from pv_atmos.grids import *
-
+```
 
 # Examples
 
 The `examples` directory contains three example scripts and the data files
 uv_daily.nc, ocean_depth.nc, and ocean_o2.nc. The examples can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
 The example files contain the 3D structure of zonal and meridional wind over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model, and oxygen data from GFDL's ESM2M model, provided by Thomas Froelicher. One script will create a spherical, one a rectangular plot of zonal wind. The ocean script will create a rectangular ocean basin.
-When using the example files, make sure to set `pvAtmosPath` within the example scripts or the command line to the directory containing basic.py and grids.py:
-
+When using the example files, make sure to set `pvAtmosPath` within the example scripts or the command line to the directory containing `basic.py` and `grids.py`:
+```
 $ pvAtmosPath = 'path/to/pv_atmos/'
-
+```
 The examples will import pv_atmos themselves, so no loading of pv_atmos is necessary prior to running the examples.
 
 # Dependencies

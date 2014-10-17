@@ -6,6 +6,7 @@
 # Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
 # Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
+######################################################################################
 # set path to the locations of atmos_grids.py, atmos_basic.py, and the examples folder
 # you can define this in the session or here
 try:
@@ -13,11 +14,11 @@ try:
 except:
     pvAtmosPath = '../'
 try: #is pv_atmos installed?
-    from pv_atmos.atmos_basic import *
-    from pv_atmos.atmos_grids import *
+    from pv_atmos.basic import *
+    from pv_atmos.grids import *
 except:
-    execfile(pvAtmosPath + 'atmos_basic.py')
-    execfile(pvAtmosPath + 'atmos_grids.py')
+    execfile(pvAtmosPath + 'basic.py')
+    execfile(pvAtmosPath + 'grids.py')
 # define aspect ratio of coordinate system: keep lon and lat, multiply log-p by 20. Base log-p on 1e3hPa
 ratio = [1,1,20]
 logCoord = [2]
@@ -51,7 +52,7 @@ repU.Opacity = 0.7
 Show()
 
 # now we want to add arrows showing the horizontal wind vector
-(W,normW,clipWS,clipWN) = CartWind2Atmos(src=Coor,ratios=ratio)
+(W,normW,clipWS,clipWN) = CartWind2Sphere(src=Coor,ratios=ratio)
 # add arrows
 Arrows = Glyph()
 Arrows.Scalars = ['POINTS','normW']
@@ -81,7 +82,7 @@ AddGrid(xlevels=[0,360],ylevels=[-90,90],zlevels=[1e3,0.1],bounds=Bounds, ratios
 AddGrid(xlevels=[90,180,270],ylevels=[-45,0,45],zlevels=[1e2,10,1],bounds=Bounds,ratios=ratio, logCoord=logCoord, basis=basis, AxisWidth=1.0,LabelSize=-LabSze)
 
 # add a plane showing wind stength at 100hPa
-Plane100=AddZPlane(100,Bounds,ratio,logCoord,basis,1,normW)
+Plane100=AddGridPlane(2, 100,Bounds,ratio,logCoord,basis,1,normW)
 RenameSource("Plane100",Plane100)
 Plane100rep = GetDisplayProperties(Plane100)
 Plane100rep.ColorArrayName = 'normW'
@@ -91,7 +92,7 @@ except:
     pass
 Plane100rep.Opacity = 0.7
 # add a plane showing zonal wind strength at 180 longitude
-Plane180=AddXPlane(180,Bounds,ratio,logCoord,basis,1,normW)
+Plane180=AddGridPlane(0, 180,Bounds,ratio,logCoord,basis,1,normW)
 RenameSource("Plane180E",Plane180)
 Plane180rep = GetDisplayProperties(Plane180)
 Plane180rep.ColorArrayName = 'ucomp'
@@ -101,7 +102,7 @@ except:
     pass
 Plane180rep.Opacity = 0.7
 # add a plane showing meridional wind strength at the equator
-PlaneEQ=AddYPlane(0,Bounds,ratio,logCoord,basis,1,normW)
+PlaneEQ=AddGridPlane(1, 0,Bounds,ratio,logCoord,basis,1,normW)
 RenameSource("PlaneEQ",PlaneEQ)
 PlaneEQrep = GetDisplayProperties(PlaneEQ)
 PlaneEQrep.ColorArrayName = 'vcomp'

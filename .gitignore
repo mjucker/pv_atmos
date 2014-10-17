@@ -10,3 +10,7 @@ build/lib/pv_atmos/__init__.py
 build/lib/pv_atmos/atmos_basic.py
 
 build/lib/pv_atmos/atmos_grids.py
+
+build/lib/pv_atmos/basic.py
+
+build/lib/pv_atmos/grids.py

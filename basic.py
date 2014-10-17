@@ -1,13 +1,13 @@
 #!/usr/bin/python
-# Filename: atmos_basic.py
+# Filename: basic.py
 #
 # Code by Martin Jucker, distributed under an MIT License
 # Any publication benefitting from this piece of code should cite
 # Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
 # Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 #
-# Python interface for ParaView (www.paraview.org). Reads netCDF file on a latitude - longitude and, if desired, pressure or height coordinates grid, including time evolution (if present). netCDF file needs to correspond to Climate and Forecast (FC) conventions (https://en.wikipedia.org/wiki/Climate_and_Forecast_Metadata_Conventions).
-# Also Provides functions to modify Cartesian coordinates and wind components.
+# Python interface for ParaView (www.paraview.org). Reads netCDF file on an arbitrary grid, including logarithmic coordinates and time evolution (if present). netCDF file needs to loosely correspond to Climate and Forecast (FC) conventions (https://en.wikipedia.org/wiki/Climate_and_Forecast_Metadata_Conventions).
+# Also provides helper functions for common operations.
 
 ##### needed modules: paraview.simple, math #########################
 from paraview.simple import *
@@ -17,16 +17,6 @@ from math import pi,log10
 strPi = str(pi)[0:7]
 
 ##### define auxiliary functions ##################################
-def CorrectZCoord(src=GetActiveSource()):
-    """Make sure Z coordinate points in positive direction. This is redundant for version >= 1.1
-
-    Adds a Calculator filter to the pipeline, which takes the absolute value of coordsZ:
-    src -- filter in pipeline to attach Calculator
-    """
-    calc=Calculator(src)
-    calc.Function = 'iHat*coordsX + jHat*coordsY + kHat*abs(coordsZ)'
-    calc.CoordinateResults = 1
-    return calc
 
 # define logarithmic coordinate conversion
 def ConvertLogCoordString(pString, basis=1e3):
@@ -37,14 +27,6 @@ def ConvertLogCoordString(pString, basis=1e3):
     basis   -- basis (surface) pressure to normalize
     """
     expression = 'abs(log10(abs(' + pString + ')/' + str(basis) + '))'
-    return expression
-	
-def ConvertPressureString(pString, ratio=1.0, basis=1e3):
-    """ConvertPressureString() is deprecated. Please use ConvertLogCoordString()"""
-    import warnings
-    warnings.warn("ConvertPressureString() is deprecated, please use ConvertLogCoordString() in the future", DeprecationWarning)
-    expression = ConvertLogCoordString(pString, basis=basis)
-    expression = expression+'*'+str(ratio)
     return expression
 
 # do the coordinate conversion inside a Calculator
@@ -77,15 +59,7 @@ def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[2], basis=[1e3]):
     calc.Function = pFun[:-3]
     calc.CoordinateResults = 1
     return calc
-	
-
-def Pressure2Cart(src=GetActiveSource(), ratio=1.0, basis=1e3):
-	"""Pressure2Cart() is deprecated. Please use Cart2Log()."""
-	import warnings
-	warnings.warn("Pressure2Cart() is deprecated. Please use Cart2Log().",DeprecationWarning)
-	calc=Cart2Log(src,[1,1,ratio],basis=[basis])
-	return calc
-
+#
 def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     """Convert Cartesian to spherical coordinates. 
 
@@ -126,7 +100,7 @@ def TransformCoords(src=GetActiveSource(), aspectRatios=[1,1,1], logCoords=[2], 
         transCoor = Cart2Log(src=src,ratios=aspectRatios,logCoords=logCoords,basis=basis)
     else:
         transCoor = GridAspectRatio(ratios=aspectRatios, src=src)
-	return transCoor
+    return transCoor
 
 #
 def MakeSelectable(src=GetActiveSource()):
@@ -152,7 +126,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
         output_nc     -- netCDF reader object with the file data as read
         transCoor     -- Calculator filter corresponding to the transformed coordinates
     """ 
-    # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round
+    # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round. Thus, we invert it here
     outputDimensions = ncDims[::-1]
     output_nc = NetCDFReader( FileName=[fileName] )
 
@@ -175,23 +149,8 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     if len(logCoords)>0 :
         RenameSource('LogCoor',transCoor)
     else:
-<<<<<<< HEAD
-        AspRat = GridAspectRatio(aspectRatios, output_nc)
-        MakeSelectable(AspRat)
-        return output_nc,AspRat
-
-#return output_nc,CorrZ,Coor,AspRat
-=======
         RenameSource('TransCoor',transCoor)
     return output_nc,transCoor
->>>>>>> FETCH_HEAD
-
-def loadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], basis=1e3 ):
-    """This is deprecated, please use LoadData()"""
-    import warnings
-    (output_nc,CorrZ,Coor,AspRat)=LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=1e3 )
-    warnings.warn("loadData() is deprecated, please use LoadData() in the future", DeprecationWarning)
-    return output_nc,CorrZ,Coor,AspRat
 
 ######## convert 2D into 3D data using a variable as third dimension ##############
 
@@ -202,7 +161,7 @@ def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=
         
         INPUTS:
             expandVar    -- name of the variable to use as third dimension
-            expandDir    -- direction in which to expand {'x','y','z'}
+            expandDir    -- direction in which to expand {'x','y','z'}. Make it negative for expanding in opposite direction: {'-x','-y','-z'}
             aspectRatios -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
             logCoords    -- index/indices of dimension(s) to be logarithmic
             basis        -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
@@ -210,28 +169,30 @@ def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=
         OUPUTS:
             trans3d      -- a Calculator filter with the transformed 3D field
     """
-	make3d = Calculator(src)
-	if expandDir.lower() == 'x':
-		make3d.Function = 'iHat*'+expandVar+' + jHat*coordsY + kHat*coordsZ)'
-	elif expandDir.lower() == 'y':
-		make3d.Function = 'iHat*coordsX + jHat*'+expandVar+' + kHat*coordsZ)'
-	elif expandDir.lower() == 'z':
-		make3d.Function = 'iHat*coordsX + jHat*coordsY + kHat*'+expandVar
-	else:
-		raise Exception("Make3D: expandDir has to be one of x,y,z, but is "+expandDir)
-	make3d.CoordinateResults = 1
-	
-	trans3d = TransformCoords(src=make3d,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
-	
-	return trans3d
+    make3d = Calculator(src)
+    sign = '+'
+    if expandDir[0] == '-':
+        sign = '-'
+    if expandDir.lower()[-1] == 'x':
+        make3d.Function = sign+'iHat*'+expandVar+' + jHat*coordsY + kHat*coordsZ)'
+    elif expandDir.lower()[-1] == 'y':
+        make3d.Function = 'iHat*coordsX '+sign+' jHat*'+expandVar+' + kHat*coordsZ)'
+    elif expandDir.lower()[-1] == 'z':
+        make3d.Function = 'iHat*coordsX + jHat*coordsY '+sign+' kHat*'+expandVar
+    else:
+        raise Exception("Make3D: expandDir has to be one of x,y,z, but is "+expandDir)
+    make3d.CoordinateResults = 1
+
+    trans3d = TransformCoords(src=make3d,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
+    return trans3d
 
 ######## some other usefull tools #################################################
 
 # transform winds from SI to plot units
-def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', ratios=[1,1,1]):
-    """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. 
+def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', ratios=[1,1,1], vertAsp=1 ):
+    """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. This is, naturally, specific to spherical geometry, and assumes that coordsX = longitude [degrees], coordsY = latitude [degrees], and coordsZ = vertical coordinate.
 
-    Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is given. 
+    Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is correct.
     INPUTS:
         src                     -- filter in pipeline to attach to
         zonalComponentName      -- name of zonal wind component in pipeline
@@ -239,6 +200,7 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
         secondsPerTimeStep      -- duration of time step in seconds: 86400 for daily
         verticalComponentName   -- name of vertical component, or 'none'
         ratios                  -- Corrections to actually plotted axes
+        vertAsp                 -- factor for vertical unit conversion = [initial vertical range]/[present vertical range(transformed)]. Only needed if there is a vertical component
     OUTPUTS:
         Adds two Calculators to the pipeline:
         W     -- wind vector calculation
@@ -260,7 +222,7 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
         'jHat*'+meridionalComponentName+'/('+strPi+'*6.4e6)*180' + \
         ')*'+str(secondsPerTimeStep)  
     W.ResultArrayName = 'W'
-    RenameSource('CartWind2Atmos',W)
+    RenameSource('CartWind2Sphere',W)
     MakeSelectable(W)
     # add the magnitdue of the wind vector, i.e wind strength. nice to have for color, threshold, glyph filters later on
     norm = Calculator(W)
@@ -281,7 +243,7 @@ def CartWind2Atmos(src=GetActiveSource(), zonalComponentName='ucomp', meridional
     clipN.ClipType.Origin  = [0.0, 80.0*ratios[1], 0.0]
     RenameSource('clipN',clipN)
     MakeSelectable(clipN)
-return W,norm,clipS,clipN
+    return W,norm,clipS,clipN
 
 # extract the boundaries of a filter
 def ExtractBounds(src=GetActiveSource()):

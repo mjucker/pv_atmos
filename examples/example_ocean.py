@@ -6,44 +6,19 @@
 # Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
 # Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
-# define a helper function for adjusting ocean bathymetry (topography) aspect ratio and color scheme
-def transformTopo(src=GetActiveSource(),moveXFunction=''):
-    depth = Calculator(src)
-    depth.Function = 'iHat*(coordsX'+moveXFunction+') + jHat*coordsY - kHat*abs('+str(depthVar)+')'
-    depth.CoordinateResults = 1
-    MakeSelectable()
-    
-    aspect = Calculator(depth)
-    aspect.Function = 'iHat*coordsX*'+str(aspRat[0])+' + jHat*coordsY*'+str(aspRat[1])+' + kHat*coordsZ*'+str(aspRat[2])
-    aspect.CoordinateResults = 1
-    rep = Show(aspect)
-    rep.ColorArrayName = depthVar
-    # assign a colormap lookup table. Only ParaView > v4.0
-    try:
-        depthVal = aspect.PointData.GetArray(depthVar)
-        lkpD = AssignLookupTable(depthVal,'erdc_blue_BW')
-        #invert the colors
-        valPts=lkpD.RGBPoints[::4]
-        lkpD.RGBPoints[::4]=valPts[::-1]
-        rep.LookupTable = lkpD
-    except:
-        pass
-
-#########
-
-# set path to the locations of atmos_grids.py, atmos_basic.py, and the examples folder
+######################################################################################
+# set path to the locations of grids.py, basic.py, and the examples folder
 # you can define this in the session or here
 try:
     pvAtmosPath
 except:
     pvAtmosPath = '../'
-#import pv_atmos
 try: #is pv_atmos installed?
-    from pv_atmos.atmos_basic import *
-    from pv_atmos.atmos_grids import *
+    from pv_atmos.basic import *
+    from pv_atmos.grids import *
 except:
-    execfile(pvAtmosPath + 'atmos_basic.py')
-    execfile(pvAtmosPath + 'atmos_grids.py')
+    execfile(pvAtmosPath + 'basic.py')
+    execfile(pvAtmosPath + 'grids.py')
 
 ## show me where the files are, relative to pvAtmosPath ##
 # path to ocean files
@@ -91,48 +66,24 @@ dataBds = o2_out.GetDataInformation().GetBounds()
 o2_thresh = Threshold(o2_coor,ThresholdRange=[0,1])
 MakeSelectable()
 
-#the topography file is in cell data, need to convert to point data
+# the bathymetry file is in cell data, need to convert to point data
 c2p=CellDatatoPointData(depth_coor)
 MakeSelectable()
 
-### see if we have to move the bathymetry file to align it with the data file
-### this is not necessary with the provided files, but might be with other files
-swapTopo = False
-if topoBds[0] != dataBds[0] or topoBds[1] != dataBds[1]:
-    if topoBds[0] < dataBds[0]:
-        moveClip = Clip(c2p, ClipType="Plane")
-        moveClip.ClipType.Origin=[dataBds[0],0,0]
-        moveClip.ClipType.Normal=[-1,0,0]
-        MakeSelectable()
-        RenameSource('moveRight',moveClip)
-        moveXFunction = '+ 360'
-        stayClip = Clip(c2p, ClipType="Plane")
-        stayClip.ClipType.Origin=[dataBds[0],0,0]
-        stayClip.ClipType.Normal=[+1,0,0]
-        MakeSelectable()
-        RenameSource('stayClip',stayClip)
-    elif topoBds[1] > dataBds[1]:
-        moveClip = Clip(c2p, ClipType="Plane")
-        moveClip.ClipType.Origin=[dataBds[1],0,0]
-        moveClip.ClipType.Normal=[1,0,0]
-        MakeSelectable()
-        RenameSource('moveLeft',moveClip)
-        moveXFunction = '- 360'
-        stayClip = Clip(c2p, ClipType="Plane")
-        stayClip.ClipType.Origin=[dataBds[0],0,0]
-        stayClip.ClipType.Normal=[-1,0,0]
-        MakeSelectable()
-        RenameSource('stayClip',stayClip)
-    swapTopo = True
-
-
-### work on the bathymetry #####
-
-if swapTopo :
-    transformTopo(moveClip,moveXFunction)
-    transformTopo(stayClip,'')
-else:
-    transformTopo(c2p,'')
+# now make the bathymetry 3D
+bathy = Make3D(depthVar, expandDir='-z', aspectRatios=aspRat, logCoords=logCoord, src=c2p)
+rep=Show(bathy)
+rep.ColorArrayName = depthVar
+# this works only for paraview > 4.1
+try:
+    depthVal = bathy.PointData.GetArray(depthVar)
+    lkpD = AssignLookupTable(depthVal,'erdc_blue_BW')
+    #invert the colors
+    valPts=lkpD.RGBPoints[::4]
+    lkpD.RGBPoints[::4]=valPts[::-1]
+    rep.LookupTable = lkpD
+except:
+    pass
 
 
 #### now add data to the ocean #######

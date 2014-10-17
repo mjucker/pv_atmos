@@ -6,7 +6,7 @@
 # Jucker, M 2014. Scientific Visualisation of Atmospheric Data with ParaView.
 # Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
-## load atmos modules ##
+######################################################################################
 # set path to the locations of atmos_grids.py, atmos_basic.py, and the examples folder
 # you can define this in the session or here
 try:
@@ -14,11 +14,11 @@ try:
 except:
     pvAtmosPath = '../'
 try: #is pv_atmos installed?
-    from pv_atmos.atmos_basic import *
-    from pv_atmos.atmos_grids import *
+    from pv_atmos.basic import *
+    from pv_atmos.grids import *
 except:
-    execfile(pvAtmosPath + 'atmos_basic.py')
-    execfile(pvAtmosPath + 'atmos_grids.py')
+    execfile(pvAtmosPath + 'basic.py')
+    execfile(pvAtmosPath + 'grids.py')
 
 # define aspect ratio of coordinate system: keep lon and lat, and log-p. Base log-p on 1e3hPa
 ratio = [1,1,1]

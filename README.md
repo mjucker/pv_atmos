@@ -164,12 +164,12 @@ Follow any of the below bullet points to get going with pv_atmos.
 
 * No Python outside ParaView is needed, as ParaView ships with its own distribution. If you don't want to use full python in a console, but simply want to work with the ParaView GUI:
 
-  - Open `Tools -> Python Shell`, and then:
+  - Click on `Run Script`, and double-click on `basic.py` and `grids.py`
+  - Or: Open `Tools -> Python Shell`, and then:
 ```
-$ from pv_atmos.basic import *
-$ from pv_atmos.grids import *
+  $ from pv_atmos.basic import *
+  $ from pv_atmos.grids import *
 ```
-  - Or: click on `Run Script`, and double-click on `basic.py` and `grids.py`
 
 * Run the version of python shipped with ParaView: This will automatically adjust your python path, and paraview.simple will be recognized:
 ```

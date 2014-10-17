@@ -195,7 +195,7 @@ uv_daily.nc, ocean_depth.nc, and ocean_o2.nc. The examples can be run within the
 The example files contain the 3D structure of zonal and meridional wind over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model, and oxygen data from GFDL's ESM2M model, provided by Thomas Froelicher. One script will create a spherical, one a rectangular plot of zonal wind. The ocean script will create a rectangular ocean basin.
 When using the example files, make sure to set `pvAtmosPath` within the example scripts or the command line to the directory containing `basic.py` and `grids.py`:
 ```
-$ pvAtmosPath = 'path/to/pv_atmos/'
+$ pvAtmosPath = '/path/to/pv_atmos/'
 ```
 The examples will import pv_atmos themselves, so no loading of pv_atmos is necessary prior to running the examples.
 

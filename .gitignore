@@ -14,3 +14,7 @@ build/lib/pv_atmos/atmos_grids.py
 build/lib/pv_atmos/basic.py
 
 build/lib/pv_atmos/grids.py
+
+dist/pv_atmos-2.0.tar.gz
+
+MANIFEST

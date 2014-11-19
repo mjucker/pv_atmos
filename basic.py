@@ -270,7 +270,7 @@ def Sphere2xyz(coords, lam, phi):
             xyzPos - list of corresponding (x,y,z)
             normal - list of (xn,yn,zn) along radial direction
     """
-    from numpy import pi,sin,cos,array
+    from math import pi,sin,cos
     if len(coords) == 3:
         rr=coords[0];lam=coords[1];phi=coords[2]
     elif len(coords) == 1:
@@ -280,7 +280,9 @@ def Sphere2xyz(coords, lam, phi):
     xyzPos = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
     rr=rr+1
     p1     = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
-    normal = list(array(p1) - array(xyzPos))
+    normal = []
+    for i in range(len(p1)):
+        normal.append(p1[i] - xyzPos[i])
     return xyzPos,normal
 #
 def xyz2Sphere(coords, y, z):
@@ -294,7 +296,7 @@ def xyz2Sphere(coords, y, z):
         OUTPUTS:
             sphPos - list of corresponding (r,lam,phi)
     """
-    from numpy import sqrt,pi,sin,cos,arcsin,arctan
+    from math import sqrt,pi,sin,cos,asin,atan
     if len(coords == 3):
         x=coords[0];y=coords[1];z=coords[2]
     elif len(coords) == 1:
@@ -303,14 +305,14 @@ def xyz2Sphere(coords, y, z):
         raise Exception("xyz2Sphere: coords has to be a list of length 3 (x,y,z), or a scalar (x)")
     r   = sqrt(x*x + y*y + z*z)
     if x > 0:
-        phi = arctan(y/x)
+        phi = atan(y/x)
     elif x < 0:
-        phi = pi + arctan(y/x)
+        phi = pi + atan(y/x)
     elif x == 0 and y > 0:
         phi = 0.5*pi
     elif x == 0 and y < 0:
         phi = 1.5*pi
-    lam = arcsin(z/r)
+    lam = asin(z/r)
     return (r,lam*180/pi,phi*180/pi)
 
 ## some simple helper functions

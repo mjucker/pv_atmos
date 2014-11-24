@@ -336,6 +336,7 @@ def Cart2Spherical(radius=1.0, src=GetActiveSource()):
         radius -- radius of the sphere, where coordZ = basis
         src    -- filter in pipeline to attach to
         """
+    from math import pi
     calc=Calculator(src)
     strRad = str(radius)
     strPi = str(pi)[0:7]

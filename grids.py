@@ -338,6 +338,7 @@ def Cart2Spherical(radius=1.0, src=GetActiveSource()):
         """
     calc=Calculator(src)
     strRad = str(radius)
+    strPi = str(pi)[0:7]
     try:
         calc.Function = 'iHat*('+strRad+'+coordsZ)*cos(coordsY*'+strPi+'/180)*cos(coordsX*'+strPi+'/180) + jHat*('+strRad+'+coordsZ)*cos(coordsY*'+strPi+'/180)*sin(coordsX*'+strPi+'/180) + kHat*('+strRad+'+coordsZ)*sin(coordsY*'+strPi+'/180)'
     except:

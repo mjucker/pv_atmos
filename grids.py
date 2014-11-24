@@ -326,6 +326,26 @@ def WaterMark(waterMark, markRadius=1, markPosition=[250, 10], markSize=1.0):
 
 ## Combine some of the above to create a suite of atmospheric shells.
 #    this replaces the grid in spherical geometry
+#
+# For independence of grids.py and basic.py, need to duplicate Cart2Spherical here
+def Cart2Spherical(radius=1.0, src=GetActiveSource()):
+    """Convert Cartesian to spherical coordinates.
+        
+        Assumes X coordinate is longitude, Y coordinate latitude, Z coordinate vertical.
+        Adds Calculator filter to the pipeline.
+        radius -- radius of the sphere, where coordZ = basis
+        src    -- filter in pipeline to attach to
+        """
+    calc=Calculator(src)
+    strRad = str(radius)
+    try:
+        calc.Function = 'iHat*('+strRad+'+coordsZ)*cos(coordsY*'+strPi+'/180)*cos(coordsX*'+strPi+'/180) + jHat*('+strRad+'+coordsZ)*cos(coordsY*'+strPi+'/180)*sin(coordsX*'+strPi+'/180) + kHat*('+strRad+'+coordsZ)*sin(coordsY*'+strPi+'/180)'
+    except:
+        calc.Function = 'iHat*'+strRad+'*cos(coordsY*'+strPi+'/180)*cos(coordsX*'+strPi+'/180) + jHat*'+strRad+'*cos(coordsY*'+strPi+'/180)*sin(coordsX*'+strPi+'/180) + kHat*'+strRad+'*sin(coordsY*'+strPi+'/180)'
+    calc.CoordinateResults = 1
+    RenameSource('Cart2Spherical',calc)
+    return calc
+#
 def SphericalShells(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], src=GetActiveSource(), shellValues=[100,10,1], labels=1, labelPosition=[170, 10], waterMark='none', markPosition=[250, 10], labelSize=1.0):
     """Add spherical shells as grid to spherical geometry, or to visualize specific pressure levels.
 

@@ -22,3 +22,5 @@ MANIFEST
 build/lib/pv_atmos/tools.py
 
 common.py
+
+dist/pv_atmos-2.0.2.tar.gz

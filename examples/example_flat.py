@@ -7,7 +7,7 @@
 # Journal of Open Research Software 2(1):e4, DOI: http://dx.doi.org/10.5334/jors.al
 
 ######################################################################################
-# set path to the locations of atmos_grids.py, atmos_basic.py, and the examples folder
+# set path to the locations of pv_atmos/grids.py, pv_atmos/basic.py, and the examples folder
 # you can define this in the session or here
 try:
     pvAtmosPath

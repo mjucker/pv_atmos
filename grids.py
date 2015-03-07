@@ -495,6 +495,60 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
             TransLon = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
 
 
-
-
-
+###### mapping lon-lat geometry to different projections ############################
+## polar projection, with a 3D twist
+def LonLat2Polar( alpha, src=GetActiveSource(), pole='north', cutLat=-90, xyscale=1.0 ):
+    """Projects longitude-latitude(-vertical) data onto the North or South pole.
+        Either in 2D (alpha=0), or with a 3D twist (alpha>0).
+        
+        INPUTS:
+            alpha       - fraction of spherical surface the projection spans:
+                            alpha = 0 -> flat, alpha = 1 -> full sphere
+                            the larger alpha, the more the projection is dome-like
+            src         - the source filter to apply the projection to
+            pole        - 'north' or 'south' for projection centering either pole
+            cutLat      - display only from the pole to this latitude
+                            -90 <= cutLat <= 90
+            xyscale     - possibility to horizontally stretch the projection
+        OUTPUTS:
+            ScaleSphere - output filter to continue pipeline
+    """
+    if alpha == 0:
+        alpha = 1.e-5
+    if alpha < 0 or alpha > 1:
+        raise ValueError('alpha has to be 0 < alpha <= 1')
+    if cutLat < -90 or cutLat > 90:
+        raise ValueError('cutLat has to be -90 <= cutLat <= 90')
+    from math import cos,sin,pi
+    # compute equivalent sphere radius
+    R = 1/sin(0.5*pi*alpha)
+    # get the right pole as origin
+    if pole == 'north':
+        yOrig = '90'
+        clipSign = 1
+    elif pole == 'south':
+        yOrig = '-90'
+        clipSign = -1
+    else:
+        raise ValueError("pole has to be 'north' or 'south'")
+    # cut meridionally to take out relevant portion
+    if cutLat > -90:
+        ClipPole = Clip(src)
+        ClipPole.ClipType.Normal = [0, clipSign, 0]
+        ClipPole.ClipType.Origin = [0, cutLat, 0]
+        CoordsPrime = Calculator(ClipPole)
+    else:
+        CoordsPrime = Calculator(src)
+    # map coordinates origin to the pole
+    CoordsPrime.CoordinateResults = 1
+    CoordsPrime.Function = 'iHat*coordsX + jHat*('+yOrig+' - '+str(alpha)+'*('+yOrig+'-coordsY)) + kHat*coordsZ'
+    RenameSource("CoordMap",CoordsPrime)
+    # make it a sphere
+    CoordsSphere = Cart2Spherical(radius=R, src=CoordsPrime)
+    # scale the curvature of the spherical mapping and move to origin vertically
+    b = R*cos(alpha*(float(yOrig)-cutLat)*pi/180)
+    ScaleSphere = Calculator(CoordsSphere)
+    ScaleSphere.CoordinateResults = 1
+    ScaleSphere.Function = 'iHat*coordsX*'+str(xyscale)+' + jHat*coordsY*'+str(xyscale)+' + kHat*(coordsZ-'+str(b)+')'
+    RenameSource("ScaleMap",ScaleSphere)
+    return ScaleSphere

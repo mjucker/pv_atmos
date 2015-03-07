@@ -134,6 +134,9 @@ Label any number of vertical levels in spherical geometry.
 
 Add a water mark to one of the spherical shells. Nice to brand your viz.
 
+##### LonLat2Polar()
+
+Project 2D longitude-latitude or 3D longitude-latitude-vertical data onto polar coordinates around the North or South pole. This has a little 3D twist, in that the projection can be domed in the vertical.
 
 
 # Releases
@@ -190,9 +193,9 @@ $ from pv_atmos.grids import *
 
 # Examples
 
-The `examples` directory contains three example scripts and the data files
-uv_daily.nc, ocean_depth.nc, and ocean_o2.nc. The examples can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
-The example files contain the 3D structure of zonal and meridional wind over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model, and oxygen data from GFDL's ESM2M model, provided by Thomas Froelicher. One script will create a spherical, one a rectangular plot of zonal wind. The ocean script will create a rectangular ocean basin.
+The `examples` directory contains four example scripts and the data files
+uv_daily.nc, ocean_depth.nc, ECMWF_19790223.nc, and ocean_o2.nc. The examples can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
+The example files contain the 3D structure of zonal and meridional wind over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model; geopotential height anomalies from ERA-Interim reanalysis; and oxygen data from GFDL's ESM2M model, provided by Thomas Froelicher. One script will create a spherical, one a rectangular plot of zonal wind. The pole script will project reanalysis and bathymetry data onto the North pole. The ocean script will create a rectangular ocean basin.
 When using the example files, make sure to set `pvAtmosPath` within the example scripts or the command line to the directory containing `basic.py` and `grids.py`:
 ```
 $ pvAtmosPath = '/path/to/pv_atmos/'

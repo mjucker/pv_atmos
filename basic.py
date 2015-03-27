@@ -94,7 +94,7 @@ def GridAspectRatio(ratios, src=GetActiveSource()):
     return calc
 
 # transform coordinates: logarithmic, aspect ratio
-def TransformCoords(src=GetActiveSource(), aspectRatios=[1,1,1], logCoords=[2], basis=1e3):
+def TransformCoords(src=GetActiveSource(), aspectRatios=[1,1,1], logCoords=[2], basis=[1e3]):
     """Transform the coordinates depending on whether or not there are logarithmic coordinates"""
     if len(logCoords)>0 :
         transCoor = Cart2Log(src=src,ratios=aspectRatios,logCoords=logCoords,basis=basis)
@@ -111,7 +111,7 @@ def MakeSelectable(src=GetActiveSource()):
 
 ######### read in data, redefine pressure coordinates and change aspect ratio ###############
 
-def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=[1e3] ):
+def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=[1e3], replaceNaN=True ):
     """Load netCDF file, convert coordinates into useful aspect ratio.
 
     Adds file output_nc, and Calculator LogP or Calculator AspRat to the pipeline
@@ -122,6 +122,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
         aspectRatios  -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
         logCoords     -- index/indices of dimension(s) to be logarithmic
         basis         -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
+        replaceNaN    -- whether or not to replace the FillValue with NaNs
     OUTPUTS:
         output_nc     -- netCDF reader object with the file data as read
         transCoor     -- Calculator filter corresponding to the transformed coordinates
@@ -139,7 +140,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     
     output_nc.SphericalCoordinates = 0
     output_nc.OutputType = 'Unstructured'
-    output_nc.ReplaceFillValueWithNan = 0
+    output_nc.ReplaceFillValueWithNan = replaceNaN
     MakeSelectable()
     RenameSource(fileName,output_nc)
     

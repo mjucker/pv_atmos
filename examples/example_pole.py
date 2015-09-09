@@ -12,7 +12,8 @@
 try:
     pvAtmosPath
 except:
-    pvAtmosPath = '../'
+    pvAtmosPath = raw_input("Please provide the path where pv_atmos lives: ")
+    pvAtmosPath = pvAtmosPath+'/'
 try: #is pv_atmos installed?
     from pv_atmos.basic import *
     from pv_atmos.grids import *
@@ -45,7 +46,6 @@ topoAspRat   = [360./356.,1,2e-5]
 
 # then, the file containing geopotential height data
 dataFile = 'ECMWF_19790223.nc'
-dataFile = 'tmp.nc'
 dataDims = ['longitude','latitude','level']
 # the values we will be interested in
 dataName = 'height'
@@ -68,7 +68,7 @@ if not os.path.isfile(dataFileName):
 ## Earth
 
 # get bathymetry: this is exactly the same as in example_ocean.py
-(depth_out,depth_coor)=LoadData(topoFileName,ncDims=topoDims,logCoords=topoLogCoord )
+(depth_out,depth_coor)=LoadData(topoFileName,ncDims=topoDims,logCoords=topoLogCoord, replaceNaN = False )
 # the bathymetry file is in cell data, need to convert to point data
 c2p=CellDatatoPointData(depth_coor)
 MakeSelectable()

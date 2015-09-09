@@ -30,7 +30,7 @@ def ConvertLogCoordString(pString, basis=1e3):
     return expression
 
 # do the coordinate conversion inside a Calculator
-def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[2], basis=[1e3]):
+def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[], basis=[]):
     """Convert between logarithmic and linear coordinates. Also applies aspect ratio correction.
 
     Adds a Calculator filter to the pipeline
@@ -86,16 +86,33 @@ def GridAspectRatio(ratios, src=GetActiveSource()):
     ratios -- 2- or 3-vector with multiplicative factors for each spatial coordinate
     """
     calc=Calculator(src)
-    try:
-        calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY + kHat*'+str(ratios[2])+'*coordsZ'
-    except:
-        calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY'
+    calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY + kHat*'+str(ratios[2])+'*coordsZ'
     calc.CoordinateResults = 1
     return calc
 
 # transform coordinates: logarithmic, aspect ratio
-def TransformCoords(src=GetActiveSource(), aspectRatios=[1,1,1], logCoords=[2], basis=[1e3]):
+def TransformCoords(src=GetActiveSource(), aspectRatios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[]):
     """Transform the coordinates depending on whether or not there are logarithmic coordinates"""
+    if len(reverseCoords)>0:
+        nVec = ['iHat*','jHat*','kHat*']
+        nCoor= ['X','Y','Z']
+        revCoor = Calculator(src)
+        rFun = ''
+        for dim in range(3):
+            if dim in reverseCoords or -dim in reverseCoords:
+                for d in range(len(reverseCoords)):
+                    if dim == abs(reverseCoords[d]):
+                        rd = d
+                if reverseCoords[rd]<0:
+                    coorSign = '+'
+                else:
+                    coorSign = '-'
+                rFun += ' +'+nVec[dim]+'('+str(revCenter[rd])+coorSign+'coords'+nCoor[dim]+')'
+            else:
+                rFun += ' +'+nVec[dim]+'coords'+nCoor[dim]
+        revCoor.Function = rFun[2:]
+        revCoor.CoordinateResults = 1
+        src = revCoor
     if len(logCoords)>0 :
         transCoor = Cart2Log(src=src,ratios=aspectRatios,logCoords=logCoords,basis=basis)
     else:
@@ -111,7 +128,7 @@ def MakeSelectable(src=GetActiveSource()):
 
 ######### read in data, redefine pressure coordinates and change aspect ratio ###############
 
-def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[2], basis=[1e3], replaceNaN=True ):
+def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], replaceNaN=True ):
     """Load netCDF file, convert coordinates into useful aspect ratio.
 
     Adds file output_nc, and Calculator LogP or Calculator AspRat to the pipeline
@@ -120,8 +137,10 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
         fileName      -- full path and file name of data to be read
         ncDims        -- names of the dimensions within the netCDF file. Time should be excluded. Ordering [x,y,z]
         aspectRatios  -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
-        logCoords     -- index/indices of dimension(s) to be logarithmic
+        logCoords     -- index/indices of dimension(s) to be logarithmic, set to [] if no log coordinates
         basis         -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
+        reverseCoords -- index/indices of dimension(s) to be reversed, set to [] if none to be reversed
+        revCenter     -- center of reversal if reverseCoords is not empty. List of same length as logCoords
         replaceNaN    -- whether or not to replace the FillValue with NaNs
     OUTPUTS:
         output_nc     -- netCDF reader object with the file data as read
@@ -144,7 +163,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     MakeSelectable()
     RenameSource(fileName,output_nc)
     
-    transCoor = TransformCoords(src=output_nc,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
+    transCoor = TransformCoords(src=output_nc,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis,reverseCoords=reverseCoords,revCenter=revCenter)
     MakeSelectable()
 	
     if len(logCoords)>0 :

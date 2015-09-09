@@ -396,22 +396,25 @@ def SphericalShells(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], src=Get
     return Planes
 
 ###### add full set of grids and lables in rectangular geometry ############################
-def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoord=[2], basis=[1e3], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
+def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoord=[], basis=[], reverseCoords=[], revCenter=[], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
     """Add a full grid with grid lines and labels.
         
         Adds as many X,Y,Z grid lines as needed. This function adds a lot of objects and filters to the pipeline, and should probably only be used once the visualization itself is finished. This function can be called even if there is no data loaded.
 
         INPUTS:
-            xlevels   -- vector with X grid positions
-            ylevels   -- vector with Y grid positions
-            zlevels   -- vector with Z grid levels
-            bounds    -- grid bounds
-            ratios    -- axes ratios
-            basis     -- basis (surface) pressure
-            AxisNames -- names of x,y,z axis
-            AxisColor -- color of lines in RGB
-            AxisWidth -- width of lines
-            LabelSize -- Size of the label text
+            xlevels       -- vector with X grid positions
+            ylevels       -- vector with Y grid positions
+            zlevels       -- vector with Z grid levels
+            bounds        -- grid bounds
+            ratios        -- axes ratios
+            logCoord      -- coordinate index/indices for logarithmic axes
+            basis         -- basis for logarithmic coordinates logCoords
+            reverseCoords -- coordinate index/indices for axes to be reversed
+            revCenter     -- center around which to reverse reverseCoords
+            AxisNames     -- names of x,y,z axis
+            AxisColor     -- color of lines in RGB
+            AxisWidth     -- width of lines
+            LabelSize     -- Size of the label text
         """
     (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
     absLsz = abs(LabelSize)

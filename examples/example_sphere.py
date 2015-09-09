@@ -12,7 +12,8 @@
 try:
     pvAtmosPath
 except:
-    pvAtmosPath = '../'
+    pvAtmosPath = raw_input("Please provide the path where pv_atmos lives: ")
+    pvAtmosPath = pvAtmosPath+'/'
 try: #is pv_atmos installed?
     from pv_atmos.basic import *
     from pv_atmos.grids import *

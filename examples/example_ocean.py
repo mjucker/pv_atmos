@@ -12,7 +12,8 @@
 try:
     pvAtmosPath
 except:
-    pvAtmosPath = '../'
+    pvAtmosPath = raw_input("Please provide the path where pv_atmos lives: ")
+    pvAtmosPath = pvAtmosPath+'/'
 try: #is pv_atmos installed?
     from pv_atmos.basic import *
     from pv_atmos.grids import *
@@ -52,7 +53,7 @@ if not os.path.isfile(oceanPath+dataFile):
 
 
 # bathymetry
-(depth_out,depth_coor)=LoadData(oceanPath+topoFile,ncDims=topoDims,logCoords=logCoord )
+(depth_out,depth_coor)=LoadData(oceanPath+topoFile,ncDims=topoDims,logCoords=logCoord,replaceNaN=False )
 # get the bounds of the topography. This is important if bathymetry and data files have different origins
 topoBds = depth_out.GetDataInformation().GetBounds()
 

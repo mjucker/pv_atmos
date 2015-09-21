@@ -59,7 +59,7 @@ def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[], basis=[]):
     calc.Function = pFun[:-3]
     calc.CoordinateResults = 1
     return calc
-#
+# convert cartesian coordinates to spherical coordinates
 def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     """Convert Cartesian to spherical coordinates. 
 
@@ -86,7 +86,14 @@ def GridAspectRatio(ratios, src=GetActiveSource()):
     ratios -- 2- or 3-vector with multiplicative factors for each spatial coordinate
     """
     calc=Calculator(src)
-    calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY + kHat*'+str(ratios[2])+'*coordsZ'
+    if len(ratios) == 1:
+        calc.Function = 'iHat*'+str(ratios[0])+'*coordsX'
+    elif len(ratios) == 2:
+        calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY'
+    elif len(ratios) == 3:
+        calc.Function = 'iHat*'+str(ratios[0])+'*coordsX + jHat*'+str(ratios[1])+'*coordsY + kHat*'+str(ratios[2])+'*coordsZ'
+    else:
+        raise ValueError('Aspect ratios must be length 1,2 or 3, but is '+str(len(rations)))
     calc.CoordinateResults = 1
     return calc
 

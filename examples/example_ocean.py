@@ -99,7 +99,7 @@ except:
     pass
 
 #### finally, add a grid  ####
-AddGrid(xlevels=[-270,-225,-180,-135,-90,-45,0,45], ylevels=[-60,-30,0,30,60], zlevels=range(-5000,1000,1000), bounds=[-280,80,-90,90,-5500,0], ratios=aspRat, logCoord=logCoord, AxisNames=["longitude","latitude","depth [m]"], AxisColor=[0,0,0], AxisWidth=1.0,LabelSize=5.0)
+AddGrid(xlevels=[-270,-225,-180,-135,-90,-45,0,45], ylevels=[-60,-30,0,30,60], zlevels=range(-5000,1000,1000), bounds=[-280,80,-90,90,-5500,0], ratios=aspRat, logCoords=logCoord, AxisNames=["longitude","latitude","depth [m]"], AxisColor=[0,0,0], AxisWidth=1.0,LabelSize=5.0)
 
 
 Render()

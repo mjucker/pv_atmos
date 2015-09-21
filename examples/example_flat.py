@@ -78,12 +78,12 @@ except:
 LabSze = 6.0
 Bounds = [0,360,-90,90,1e3,0.01]
 # outside box, rename axes
-AddGrid(xlevels=[0,360],ylevels=[-90,90],zlevels=[1e3,0.1],bounds=Bounds, ratios=ratio, logCoord=logCoord, basis=basis, AxisWidth=2.0,LabelSize=LabSze, AxisNames=["longitude","latitude","pressure [hPa]"])
+AddGrid(xlevels=[0,360],ylevels=[-90,90],zlevels=[1e3,0.1],bounds=Bounds, ratios=ratio, logCoords=logCoord, basis=basis, AxisWidth=2.0,LabelSize=LabSze, AxisNames=["longitude","latitude","pressure [hPa]"])
 # inside grid lines: add only line labels, not axis labels
-AddGrid(xlevels=[90,180,270],ylevels=[-45,0,45],zlevels=[1e2,10,1],bounds=Bounds,ratios=ratio, logCoord=logCoord, basis=basis, AxisWidth=1.0,LabelSize=-LabSze)
+AddGrid(xlevels=[90,180,270],ylevels=[-45,0,45],zlevels=[1e2,10,1],bounds=Bounds,ratios=ratio, logCoords=logCoord, basis=basis, AxisWidth=1.0,LabelSize=-LabSze)
 
 # add a plane showing wind stength at 100hPa
-Plane100=AddGridPlane(2, 100,Bounds,ratio,logCoord,basis,1,normW)
+Plane100=AddGridPlane(2, 100,Bounds,ratio,logCoord,basis,data=1,src=normW)
 RenameSource("Plane100",Plane100)
 Plane100rep = GetDisplayProperties(Plane100)
 Plane100rep.ColorArrayName = 'normW'
@@ -93,7 +93,7 @@ except:
     pass
 Plane100rep.Opacity = 0.7
 # add a plane showing zonal wind strength at 180 longitude
-Plane180=AddGridPlane(0, 180,Bounds,ratio,logCoord,basis,1,normW)
+Plane180=AddGridPlane(0, 180,Bounds,ratio,logCoord,basis,data=1,src=normW)
 RenameSource("Plane180E",Plane180)
 Plane180rep = GetDisplayProperties(Plane180)
 Plane180rep.ColorArrayName = 'ucomp'
@@ -103,7 +103,7 @@ except:
     pass
 Plane180rep.Opacity = 0.7
 # add a plane showing meridional wind strength at the equator
-PlaneEQ=AddGridPlane(1, 0,Bounds,ratio,logCoord,basis,1,normW)
+PlaneEQ=AddGridPlane(1, 0,Bounds,ratio,logCoord,basis,data=1,src=normW)
 RenameSource("PlaneEQ",PlaneEQ)
 PlaneEQrep = GetDisplayProperties(PlaneEQ)
 PlaneEQrep.ColorArrayName = 'vcomp'

@@ -60,11 +60,11 @@ Show()
 
 
 ## add grid in form of 'shells' in the atmosphere. also add a watermark
-Shells = SphericalShells(radius,ratio,logCoord,basis,Coor,[10,1],1,waterMark='bob 2014')
+Shells = SphericalShells([10,1],radius,ratio,logCoord,basis,src=Coor,labels=1,waterMark='John Doe')
 
 # also add a shell at 100hPa, colored by zonal wind
 addShell = [100]
-Plane100=SphericalShells(radius,ratio,logCoord,basis,Coor,addShell,1)
+Plane100=SphericalShells(addShell,radius,ratio,logCoord,basis,src=Coor,labels=1)
 Srep = Show(Plane100[0])
 Srep.ColorArrayName = 'ucomp'
 try:
@@ -73,7 +73,7 @@ except:
     pass
 Srep.Opacity = 0.5
 # add a label for this plane
-Label100 = SphericalLabels(radius,ratio,logCoord,basis,addShell)
+Label100 = SphericalLabels(addShell,radius,ratio,logCoord,basis)
 
 # finally, add a sphere marking the surface
 Surface = Sphere(Radius=radius)

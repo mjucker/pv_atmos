@@ -27,32 +27,40 @@ def Lin2Log(x, ratio=1.0, basis=1e3):
     return level
 
 # adjust aspect ratio of bounding box vector
-def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
-    """Adjust aspect ratio of bounding box (axes).
+def BoundAspectRatio(bounds, ratios, logCoords=[], basis=[], reverseCoords=[], revCenter=[]):
+    """Adjust aspect ratio of bounding box (axes). Note that coordinate reversal is done before logarithmic transformation.
         
         Inputs are:
-        bounds     -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
-        ratios     -- Corrections to actually plotted axes
-        logCoord   -- Which of the coordinates is in log scale [array]. Default is 3rd (pressure)
-        basis      -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+        bounds        -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+        ratios        -- Corrections to actually plotted axes
+        logCoords     -- Which of the coordinates is in log scale [array].
+        basis         -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+        reverseCoords -- Which of the coordinates should be reversed [array].
+        revCenter     -- Around which physical value should it/they be reversed.
         Outputs are:
         Xmin,Xmax,Ymin,Ymax,Zmin,Zmax of axes
         """
     boundsIn=bounds[:]
-    #first, deal with log scale coordinates
-    for pp in range(len(logCoord)):
-        if len(boundsIn) > 2*logCoord[pp]:
+    # first, reverse coodinates
+    if len(reverseCoords) > 0:
+        for rc in reverseCoords:
+            ri = reverseCoords.index(rc)
+            boundsIn[rc*2]   = revCenter[ri] - boundsIn[rc*2]
+            boundsIn[rc*2+1] = revCenter[ri] - boundsIn[rc*2+1]
+    #second, deal with log scale coordinates
+    for pp in range(len(logCoords)):
+        if len(boundsIn) > 2*logCoords[pp]:
             if len(basis) > 0 :
                 bas = basis[pp]
             else:
                 bas = basis[0]
-            boundsIn[logCoord[pp]*2  ] = Lin2Log(bounds[logCoord[pp]*2  ],1.0,bas)
-            boundsIn[logCoord[pp]*2+1] = Lin2Log(bounds[logCoord[pp]*2+1],1.0,bas)
+            boundsIn[logCoords[pp]*2  ] = Lin2Log(boundsIn[logCoords[pp]*2  ],1.0,bas)
+            boundsIn[logCoords[pp]*2+1] = Lin2Log(boundsIn[logCoords[pp]*2+1],1.0,bas)
     #then apply aspect ratios
-    Xmin   = boundsIn[0]*ratios[0]
+    Xmin  = boundsIn[0]*ratios[0]
     Xmax  = boundsIn[1]*ratios[0]
-    Ymin   = boundsIn[2]*ratios[1]
-    Ymax    = boundsIn[3]*ratios[1]
+    Ymin  = boundsIn[2]*ratios[1]
+    Ymax  = boundsIn[3]*ratios[1]
     if len(bounds) == 6 :
         Zmin = boundsIn[4]*ratios[2]
         Zmax = boundsIn[5]*ratios[2]
@@ -61,35 +69,46 @@ def BoundAspectRatio(bounds, ratios, logCoord=[2], basis=[1e3]):
         return Xmin,Xmax,Ymin,Ymax
 
 # add a plane perpendicular to a given dimension
-def AddGridPlane(dim, x, bounds=[0.0,360.0,-90.0,90.0], ratios=[1,1,1], logCoord=[2], basis=[1e3], data=0, src=GetActiveSource(), AxisColor=[0,0,0], AxisWidth=1.0):
+def AddGridPlane(dim, x, bounds, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], data=0, src=GetActiveSource(), AxisColor=[0,0,0], AxisWidth=1.0):
     """Extract or add a plane, i.e. perpendicular to dimension dim.
         
         Either to add a grid line, or a data plane perpendicular to a given dimension.
         if data ==1, extracts a horizontal plane from data, else adds an empty plane for grid only
         
         INPUTS:
-            dim     -- index of the dimension to work on. 0,1,2
-            x       -- physical value at which plane should be extracted/created. In original coordinates, not converted (unknown) coordinates
-            bounds  -- extremities of grid box [Xmin,Xmax,Ymin,Ymax[,Zmin,Zmax]]
-            ratios  -- aspect ratios of axes
-            logCoord-- index/indices of coordinates to be treated logarithmically
-            basis   -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
-            data    -- whether (1) or not (0) plane extracts data
-            src     -- filter in pipeline to attach to
-            AxisColor -- color of lines in RGB
-            AxisWidth -- width of lines
+            dim           -- index of the dimension to work on. 0,1,2
+            x             -- physical value at which plane should be extracted/created. In original coordinates, not converted (unknown) coordinates
+            bounds        -- extremities of grid box [Xmin,Xmax,Ymin,Ymax[,Zmin,Zmax]]
+            ratios        -- aspect ratios of axes
+            logCoords     -- index/indices of coordinates to be treated logarithmically
+            basis         -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+            reverseCoords -- Which of the coordinates should be reversed [array].
+            revCenter     -- Around which physical value should it/they be reversed.
+            data          -- whether (1) or not (0) plane extracts data
+            src           -- filter in pipeline to attach to
+            AxisColor     -- color of lines in RGB
+            AxisWidth     -- width of lines
         OUTPUTS:
-            Plane1   -- New plane in the pipeline, either containing data or not
+            Plane1        -- New plane in the pipeline, either containing data or not
         """
-    if dim in logCoord :
-        level = Lin2Log(x,ratios[dim],basis[logCoord.index(dim)])
+    # first, reverse coordinate
+    if dim in reverseCoords:
+        ri = reverseCoords.index(dim)
+        level = revCenter[ri] - x
+        sgn = -1
     else:
-        level = x*ratios[dim]
-
+        level = x
+        sgn = 1
+    # second, treat logarithmic coordinates
+    if dim in logCoords :
+        level = Lin2Log(level,ratios[dim],basis[logCoords.index(dim)])
+    else:
+        level = level*ratios[dim]
+    # get all the other dimensions
     if len(bounds) == 4 :
-        (Xmin,Xmax,Ymin,Ymax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
+        (Xmin,Xmax,Ymin,Ymax) = BoundAspectRatio(bounds, ratios, logCoords, basis, reverseCoords, revCenter)
     else:
-        (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
+        (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(bounds, ratios, logCoords, basis, reverseCoords, revCenter)
     # make sure we place the plane in the right direction
     if dim == 0:
         origin  = [level, Ymax, Zmin]
@@ -104,7 +123,7 @@ def AddGridPlane(dim, x, bounds=[0.0,360.0,-90.0,90.0], ratios=[1,1,1], logCoord
         origin1 = [Xmax, Ymin, level]
         origin2 = [Xmin, Ymax, level]
     normal = [0.0, 0.0, 0.0]
-    normal[dim] = 1.0
+    normal[dim] = sgn*1.0
     if data == 1 : #extract plane from data
         Plane1 = Slice(src)
         Plane1.SliceType.Origin = origin
@@ -123,32 +142,43 @@ def AddGridPlane(dim, x, bounds=[0.0,360.0,-90.0,90.0], ratios=[1,1,1], logCoord
     return Plane1
 
 # add a label at a given place along a dimension, outside the domain
-def AddGridLabel(dim, x, LabelSize=5.0, bounds=[0.0,360,-90.0,90.0], ratios=[1,1,1], logCoord=[2], basis=[1e3], AxisColor=[0,0,0]):
+def AddGridLabel(dim, x, bounds, LabelSize=5.0, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], AxisColor=[0,0,0]):
     """Adds a label at a given position along a given dimension, outside the domain (e.g. for axes labeling).
         
         The label text is the same as the value of x.
         
         INPUTS:
-            x         -- Position and name of label
-            LabelSize -- Size of the label text
-            bounds    -- bounds of axes: label is positioned just outside these bounds [Xmin,Xmax,Ymin,Ymax[,Zmin,Zmax]]
-            ratios    -- aspect ratios of axes
-            logCoord  -- index/indices of coordinates to be treated logarithmically
-            basis     -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
-            AxisColor -- color of lines in RGB
+            dim           -- Dimension along which x is defined
+            x             -- Position and name of label
+            bounds        -- bounds of axes: label is positioned just outside these bounds [Xmin,Xmax,Ymin,Ymax[,Zmin,Zmax]]
+            LabelSize     -- Size of the label text
+            ratios        -- aspect ratios of axes
+            logCoords     -- index/indices of coordinates to be treated logarithmically
+            basis         -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+            reverseCoords -- Which of the coordinates should be reversed [array].
+            revCenter     -- Around which physical value should it/they be reversed.
+            AxisColor     -- color of lines in RGB
         OUTPUTS:
-            Label       -- The label itself
-            Trans{1..4} -- Transforms to position the labels. 2 for x and y, 4 for z
+            Label         -- The label itself
+            Trans{1..4}   -- Transforms to position the labels. 2 for x and y, 4 for z
     """
-    if dim in logCoord :
-        level = Lin2Log(x,ratios[dim],basis[logCoord.index(dim)])
+    # first, reverse coordinates
+    if dim in reverseCoords:
+        ri = reverseCoords.index(dim)
+        level = revCenter[ri] - x
     else:
-        level = x*ratios[dim]
-    
+        level = x
+    # second, deal with log coordinates
+    if dim in logCoords :
+        li = logCoords.index(dim)
+        level = Lin2Log(level,ratios[dim],basis[li])
+    else:
+        level = level*ratios[dim]
+    # get all other dimensions
     if len(bounds) == 4 :
-        (Xmin,Xmax ,Ymin,Ymax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
+        (Xmin,Xmax ,Ymin,Ymax) = BoundAspectRatio(bounds, ratios, logCoords, basis, reverseCoords, revCenter)
     else:
-        (Xmin,Xmax ,Ymin,Ymax,Zmin ,Zmax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
+        (Xmin,Xmax ,Ymin,Ymax,Zmin ,Zmax) = BoundAspectRatio(bounds, ratios, logCoords, basis, reverseCoords, revCenter)
     LabelScale = [abs(LabelSize), abs(LabelSize), abs(LabelSize)]
     Label = a3DText(Text=str(x))
     
@@ -255,26 +285,32 @@ def AddAxisLabel(Labl,Trans,Rot, AxisColor=[0,0,0], LabelSize=5.0,):
     return TransLab
 
 # Add vertical labels in spherical coordinates
-def SphericalLabels(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], shellValues=[100,10,1], labelPosition=[170, 10], labelSize=1.0):
-    """Label vertical surface(s) that has(have) been extracted in spherical geometry (shell).
-
-    radius   -- radius of sphere with r(basis)=radius
-    ratios   -- aspect ratios of axes before converting to sphere
-    logCoord -- index/indices of coordinates to be treated logarithmically
-    basis    -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
-    shellValues -- vector of values to be labelled, in original units (before ratios conversion)
-    labelPosition -- the position in [longitude,latitude] on the sphere
-    labelSize -- multiplicative factor for size of the labels
+def SphericalLabels(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], labelPosition=[170,10], labelSize=1.0):
+    """Label vertical surface(s) that has(have) been extracted in spherical geometry (shell). The third coordinate (index 2) is always assumed to take the function of radius in spherical coordinates.
+        
+    shellValues   -- vector of values to be labelled, in original units (before ratios conversion)
+    radius        -- radius of sphere with r(basis)=radius
+    ratios        -- aspect ratios of axes before converting to sphere
+    logCoords     -- index/indices of coordinates to be treated logarithmically
+    basis         -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoords
+    reverseCoords -- Which of the coordinates should be reversed [array].
+    revCenter     -- Around which physical value should it/they be reversed.
+    labelPosition -- the position in on the sphere, size [horiz dim 1, horiz dim 2]
+    labelSize     -- multiplicative factor for size of the labels
     Adds the label text, a Transform and a Calculator filter to the pipeline
         """
-    if 2 in logCoord :
+    if 2 in logCoords :
         if len(basis) > 0:
-            bas = basis[logCoord.index(2)]
+            bas = basis[logCoords.index(2)]
         else:
             bas = basis[0]
     for p in range(len(shellValues)):
         ps = shellValues[p]
-        if 2 in logCoord :
+        # first, reverse coordinate
+        if 2 in reverseCoords:
+            ps = revCenter[reverseCoords.index(2)] - ps
+        #second, treat logarithmic coordinate
+        if 2 in logCoords :
             if ps >= bas :
                 fac = 1.01
             else:
@@ -348,45 +384,48 @@ def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     RenameSource('Cart2Spherical',calc)
     return calc
 #
-def SphericalShells(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], src=GetActiveSource(), shellValues=[100,10,1], labels=1, labelPosition=[170, 10], waterMark='none', markPosition=[250, 10], labelSize=1.0):
-    """Add spherical shells as grid to spherical geometry, or to visualize specific pressure levels.
+def SphericalShells(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], src=GetActiveSource(), labels=1, labelPosition=[170, 10], waterMark='none', markPosition=[250, 10], labelSize=1.0):
+    """Add spherical shells as grid to spherical geometry, or to visualize specific vertical levels. Vertical is always assumed 3rd dimension.
 
     Adds as many shells as there are shellValues.
     
-    Combines AddGridPlane, SphericalLabels, and WaterMark to create a grid in spherical coordinates.
+    Combines AddGridPlane(), SphericalLabels(), and WaterMark() to create a grid in spherical geometry.
+    
+    shellValues   -- vector of values to be labelled, in original units (hPa,km,...)
     radius        -- radius of sphere with r(basis)=radius
     ratios        -- aspect ratios of axes before converting to sphere
-    logCoord      -- index/indices of coordinates to be treated logarithmically
+    logCoords     -- index/indices of coordinates to be treated logarithmically
     basis         -- basis to normalize logarithmic coordinate(s). If len==1, applied to all logCoord, otherwise must be same length as logCoord
+    reverseCoords -- Which of the coordinates should be reversed [array].
+    revCenter     -- Around which physical value should it/they be reversed.
     src           -- filter in pipeline to attach to
-    shellValues   -- vector of values to be labelled, in original units (hPa,km)
     labels        -- add labels (>0) or not (0)
     labelPosition -- the position in [longitude,latitude] on the sphere
     waterMark     -- string with text for water mark, or 'none'
     markPosition  -- position of water mark in [longitude, latitude] on the sphere
     labelSize     -- multiplicative factor for size of labels and water mark
+    
     Adds a Plane, two Calculators, a a3DText, and a Transform to the pipeline.
     If a water mark is included, adds an additional a3DText, Transform, and a Calculator filter to the pipeline.
     Returns a list of all pressure planes for further treatment.
     """
     Planes=[]
     for ps in shellValues:
-        TropoSlice = AddGridPlane(2, ps, ratios=ratios, logCoord=logCoord, basis=basis, data=1, src=src)
+        TropoSlice = AddGridPlane(2, ps, bounds=[0,360,-90,90], ratios=ratios, logCoords=logCoords, basis=basis, reverseCoords=reverseCoords, revCenter=revCenter, data=1, src=src)
         rep=Show(TropoSlice);rep.Visibility=0
         RenameSource(str(ps)+'[Z]',TropoSlice)
         Cart2Sphere = Cart2Spherical(radius,TropoSlice)
         TropoSlice_disp=Show()
         TropoSlice_disp.Opacity=0.1
         Planes.append(Cart2Sphere)
-
         if labels>0:
-            SphericalLabels(radius, ratios, logCoord, basis, [ps], labelPosition, labelSize)
+            SphericalLabels([ps], radius, ratios, logCoords, basis, reverseCoords, revCenter, labelPosition, labelSize)
     
     # add watermark
     if waterMark != 'none':
-        if 2 in logCoord :
+        if 2 in logCoords :
             if len(basis) > 0:
-                bas = basis[logCoord.index(2)]
+                bas = basis[logCoords.index(2)]
             else:
                 bas = basis[0]
             labelRadius = Lin2Log(min(shellValues),ratios[2],bas)
@@ -396,7 +435,7 @@ def SphericalShells(radius=1, ratios=[1,1,1], logCoord=[2], basis=[1e3], src=Get
     return Planes
 
 ###### add full set of grids and lables in rectangular geometry ############################
-def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoord=[], basis=[], reverseCoords=[], revCenter=[], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
+def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
     """Add a full grid with grid lines and labels.
         
         Adds as many X,Y,Z grid lines as needed. This function adds a lot of objects and filters to the pipeline, and should probably only be used once the visualization itself is finished. This function can be called even if there is no data loaded.
@@ -407,7 +446,7 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
             zlevels       -- vector with Z grid levels
             bounds        -- grid bounds
             ratios        -- axes ratios
-            logCoord      -- coordinate index/indices for logarithmic axes
+            logCoords     -- coordinate index/indices for logarithmic axes
             basis         -- basis for logarithmic coordinates logCoords
             reverseCoords -- coordinate index/indices for axes to be reversed
             revCenter     -- center around which to reverse reverseCoords
@@ -416,15 +455,15 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
             AxisWidth     -- width of lines
             LabelSize     -- Size of the label text
         """
-    (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(bounds, ratios, logCoord, basis)
+    (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(bounds, ratios, logCoords, basis, reverseCoords, revCenter)
     absLsz = abs(LabelSize)
     #Z grid
     if len(zlevels) > 0:
         for z in zlevels:
-            PlaneTmp = AddGridPlane(2, z, bounds[0:4], ratios, logCoord, basis, AxisColor=AxisColor, AxisWidth=AxisWidth)
+            PlaneTmp = AddGridPlane(2, z, bounds[0:4], ratios, logCoords, basis, reverseCoords, revCenter, AxisColor=AxisColor, AxisWidth=AxisWidth)
             RenameSource("Plane"+str(z),PlaneTmp)
             if abs(LabelSize) > 0.0 :
-                (label,transa,transb,transc,transd) = AddGridLabel(2, z, absLsz, bounds[0:4], ratios, logCoord, basis, AxisColor)
+                (label,transa,transb,transc,transd) = AddGridLabel(2, z, bounds[0:4], absLsz, ratios, logCoords, basis, reverseCoords, revCenter, AxisColor)
                 RenameSource("Label"+str(z),label)
                 Show(transa)
                 Show(transb)
@@ -455,10 +494,10 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
     #Y grid
     if len(ylevels) > 0:
         for y in ylevels:
-            PlaneTmp = AddGridPlane(1, y, bounds, ratios, logCoord, basis, AxisColor=AxisColor, AxisWidth=AxisWidth)
+            PlaneTmp = AddGridPlane(1, y, bounds, ratios, logCoords, basis, reverseCoords, revCenter, AxisColor=AxisColor, AxisWidth=AxisWidth)
             RenameSource("Plane"+str(y),PlaneTmp)
             if abs(LabelSize) > 0.0 :
-                (label,transa,transb) = AddGridLabel(1, y, absLsz, bounds, ratios, logCoord, basis, AxisColor)
+                (label,transa,transb) = AddGridLabel(1, y, bounds, absLsz, ratios, logCoords, basis, reverseCoords, revCenter, AxisColor)
                 RenameSource("Label"+str(y),label)
                 Show(transa)
                 Show(transb)
@@ -478,10 +517,10 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
     #X grid
     if len(xlevels) > 0 :
         for x in xlevels:
-            PlaneTmp = AddGridPlane(0, x, bounds, ratios, logCoord, basis, AxisColor=AxisColor, AxisWidth=AxisWidth)
+            PlaneTmp = AddGridPlane(0, x, bounds, ratios, logCoords, basis, reverseCoords, revCenter, AxisColor=AxisColor, AxisWidth=AxisWidth)
             RenameSource("Plane"+str(x)+"[X]",PlaneTmp)
             if abs(LabelSize) > 0.0 :
-                (label,transa,transb) = AddGridLabel(0, x, absLsz, bounds, ratios, logCoord, basis, AxisColor)
+                (label,transa,transb) = AddGridLabel(0, x, bounds, absLsz, ratios, logCoords, basis, reverseCoords, revCenter, AxisColor)
                 Show(transa)
                 Show(transb)
 

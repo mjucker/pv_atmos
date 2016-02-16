@@ -17,7 +17,7 @@ from math import log10
 # do the math for logarithmic coordinates - no coordinate conversion
 def Lin2Log(x, ratio=1.0, basis=1e3):
     """Convert linear coordinate to logarithmic coordinate value
-        
+
         x     -- the coordinate value to convert
         ratio -- the multiplicative factor after log10
         basis -- basis to normalize argument to logarithm (ie defines origin).
@@ -29,7 +29,7 @@ def Lin2Log(x, ratio=1.0, basis=1e3):
 # adjust aspect ratio of bounding box vector
 def BoundAspectRatio(bounds, ratios, logCoords=[], basis=[], reverseCoords=[], revCenter=[]):
     """Adjust aspect ratio of bounding box (axes). Note that coordinate reversal is done before logarithmic transformation.
-        
+
         Inputs are:
         bounds        -- Physical bounds of 2D or 3D axes [Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
         ratios        -- Corrections to actually plotted axes
@@ -71,10 +71,10 @@ def BoundAspectRatio(bounds, ratios, logCoords=[], basis=[], reverseCoords=[], r
 # add a plane perpendicular to a given dimension
 def AddGridPlane(dim, x, bounds, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], data=0, src=GetActiveSource(), AxisColor=[0,0,0], AxisWidth=1.0):
     """Extract or add a plane, i.e. perpendicular to dimension dim.
-        
+
         Either to add a grid line, or a data plane perpendicular to a given dimension.
         if data ==1, extracts a horizontal plane from data, else adds an empty plane for grid only
-        
+
         INPUTS:
             dim           -- index of the dimension to work on. 0,1,2
             x             -- physical value at which plane should be extracted/created. In original coordinates, not converted (unknown) coordinates
@@ -144,9 +144,9 @@ def AddGridPlane(dim, x, bounds, ratios=[1,1,1], logCoords=[], basis=[], reverse
 # add a label at a given place along a dimension, outside the domain
 def AddGridLabel(dim, x, bounds, LabelSize=5.0, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], AxisColor=[0,0,0]):
     """Adds a label at a given position along a given dimension, outside the domain (e.g. for axes labeling).
-        
+
         The label text is the same as the value of x.
-        
+
         INPUTS:
             dim           -- Dimension along which x is defined
             x             -- Position and name of label
@@ -181,7 +181,7 @@ def AddGridLabel(dim, x, bounds, LabelSize=5.0, ratios=[1,1,1], logCoords=[], ba
         (Xmin,Xmax ,Ymin,Ymax,Zmin ,Zmax) = BoundAspectRatio(bounds, ratios, logCoords, basis, reverseCoords, revCenter)
     LabelScale = [abs(LabelSize), abs(LabelSize), abs(LabelSize)]
     Label = a3DText(Text=str(x))
-    
+
     percentOff = 0.02
     # the z labels are shown at all four courners
     # the x and y labels are shown only twice, at the bottom on each side
@@ -287,7 +287,7 @@ def AddAxisLabel(Labl,Trans,Rot, AxisColor=[0,0,0], LabelSize=5.0,):
 # Add vertical labels in spherical coordinates
 def SphericalLabels(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], labelPosition=[170,10], labelSize=1.0):
     """Label vertical surface(s) that has(have) been extracted in spherical geometry (shell). The third coordinate (index 2) is always assumed to take the function of radius in spherical coordinates.
-        
+
     shellValues   -- vector of values to be labelled, in original units (before ratios conversion)
     radius        -- radius of sphere with r(basis)=radius
     ratios        -- aspect ratios of axes before converting to sphere
@@ -366,7 +366,7 @@ def WaterMark(waterMark, markRadius=1, markPosition=[250, 10], markSize=1.0):
 # For independence of grids.py and basic.py, need to duplicate Cart2Spherical here
 def Cart2Spherical(radius=1.0, src=GetActiveSource()):
     """Convert Cartesian to spherical coordinates.
-        
+
         Assumes X coordinate is longitude, Y coordinate latitude, Z coordinate vertical.
         Adds Calculator filter to the pipeline.
         radius -- radius of the sphere, where coordZ = basis
@@ -388,9 +388,9 @@ def SphericalShells(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[
     """Add spherical shells as grid to spherical geometry, or to visualize specific vertical levels. Vertical is always assumed 3rd dimension.
 
     Adds as many shells as there are shellValues.
-    
+
     Combines AddGridPlane(), SphericalLabels(), and WaterMark() to create a grid in spherical geometry.
-    
+
     shellValues   -- vector of values to be labelled, in original units (hPa,km,...)
     radius        -- radius of sphere with r(basis)=radius
     ratios        -- aspect ratios of axes before converting to sphere
@@ -404,7 +404,7 @@ def SphericalShells(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[
     waterMark     -- string with text for water mark, or 'none'
     markPosition  -- position of water mark in [longitude, latitude] on the sphere
     labelSize     -- multiplicative factor for size of labels and water mark
-    
+
     Adds a Plane, two Calculators, a a3DText, and a Transform to the pipeline.
     If a water mark is included, adds an additional a3DText, Transform, and a Calculator filter to the pipeline.
     Returns a list of all pressure planes for further treatment.
@@ -420,7 +420,7 @@ def SphericalShells(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[
         Planes.append(Cart2Sphere)
         if labels>0:
             SphericalLabels([ps], radius, ratios, logCoords, basis, reverseCoords, revCenter, labelPosition, labelSize)
-    
+
     # add watermark
     if waterMark != 'none':
         if 2 in logCoords :
@@ -435,9 +435,11 @@ def SphericalShells(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[
     return Planes
 
 ###### add full set of grids and lables in rectangular geometry ############################
-def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoords=[], basis=[], reverseCoords=[], revCenter=[], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
+def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], \
+            bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoords=[], basis=[], \
+            reverseCoords=[], revCenter=[], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
     """Add a full grid with grid lines and labels.
-        
+
         Adds as many X,Y,Z grid lines as needed. This function adds a lot of objects and filters to the pipeline, and should probably only be used once the visualization itself is finished. This function can be called even if there is no data loaded.
 
         INPUTS:
@@ -469,10 +471,10 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
                 Show(transb)
                 Show(transc)
                 Show(transd)
-        
+
         #Z axis label
         if LabelSize > 0.0 :
-            BoxH = Zmax - Zmin 
+            BoxH = Zmax - Zmin
             LabelTmp = a3DText(Text=AxisNames[2])
             RenameSource("ZLabel",LabelTmp)
             LabelPushFac = len(str(max(max(zlevels),abs(min(zlevels)))))+2
@@ -488,7 +490,7 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
                 Trans = [ Transx[i], Transy[i], Zmin + BoxH*0.5 -4.0*absLsz ]
                 Rot = [ Rotx[i], Roty[i], Rotz[i] ]
                 TransPres = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
-                
+
     # for other coordinate labels
     Z = Zmin  - absLsz*3.0
     #Y grid
@@ -509,7 +511,7 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
             Trans = [Xmax , midY-2.5*absLsz, Z]
             Rot = [ 90.0, 90.0, 0.0 ]
             TransLat = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
-            
+
             Trans = [Xmin, midY+2.5*absLsz, Z]
             Rot = [ 90.0,-90.0, 0.0 ]
             TransLat = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
@@ -531,7 +533,7 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
             Trans = [0.5*(Xmin+Xmax )-3.0*absLsz, Ymin, Z]
             Rot = [ 90.0,   0.0, 0.0 ]
             TransLon = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
-            
+
             Trans = [0.5*(Xmin+Xmax)+3.0*absLsz, Ymax, Z]
             Rot = [ 90.0, 180.0, 0.0 ]
             TransLon = AddAxisLabel(LabelTmp, Trans, Rot, AxisColor, absLsz)
@@ -542,7 +544,7 @@ def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1
 def LonLat2Polar( alpha, src=GetActiveSource(), pole='north', cutLat=-90, xyscale=1.0 ):
     """Projects longitude-latitude(-vertical) data onto the North or South pole.
         Either in 2D (alpha=0), or with a 3D twist (alpha>0).
-        
+
         INPUTS:
             alpha       - fraction of spherical surface the projection spans:
                             alpha = 0 -> flat, alpha = 1 -> full sphere

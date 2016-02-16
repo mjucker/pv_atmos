@@ -436,8 +436,9 @@ def SphericalShells(shellValues, radius=1, ratios=[1,1,1], logCoords=[], basis=[
 
 ###### add full set of grids and lables in rectangular geometry ############################
 def AddGrid(xlevels=[0,90,180,270], ylevels=[-60,-30,0,30,60], zlevels=[100,10,1,0.1], \
-            bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], logCoords=[], basis=[], \
-            reverseCoords=[], revCenter=[], AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
+            bounds=[0.0,360.0,-90.0,90.0,1e3,0.1], ratios=[1,1,1], \
+            logCoords=[], basis=[], reverseCoords=[], revCenter=[], \
+            AxisNames=["lon","lat","pressure [hPa]"], AxisColor=[0,0,0], AxisWidth=2.0,LabelSize=5.0):
     """Add a full grid with grid lines and labels.
 
         Adds as many X,Y,Z grid lines as needed. This function adds a lot of objects and filters to the pipeline, and should probably only be used once the visualization itself is finished. This function can be called even if there is no data loaded.

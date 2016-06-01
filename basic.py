@@ -61,7 +61,7 @@ def Cart2Log(src=GetActiveSource(), ratios=[1,1,1], logCoords=[], basis=[]):
     return calc
 # convert cartesian coordinates to spherical coordinates
 def Cart2Spherical(radius=1.0, src=GetActiveSource()):
-    """Convert Cartesian to spherical coordinates. 
+    """Convert Cartesian to spherical coordinates.
 
     Assumes X coordinate is longitude, Y coordinate latitude, Z coordinate vertical.
     Adds Calculator filter to the pipeline.
@@ -139,7 +139,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     """Load netCDF file, convert coordinates into useful aspect ratio.
 
     Adds file output_nc, and Calculator LogP or Calculator AspRat to the pipeline
-    
+
     INPUTS:
         fileName      -- full path and file name of data to be read
         ncDims        -- names of the dimensions within the netCDF file. Time should be excluded. Ordering [x,y,z]
@@ -152,7 +152,7 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
     OUTPUTS:
         output_nc     -- netCDF reader object with the file data as read
         transCoor     -- Calculator filter corresponding to the transformed coordinates
-    """ 
+    """
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round. Thus, we invert it here
     outputDimensions = ncDims[::-1]
     output_nc = NetCDFReader( FileName=[fileName] )
@@ -163,16 +163,16 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
             outDims = outDims + ', ' + outputDimensions[dim]
         outDims += ')'
         output_nc.Dimensions = outDims
-    
+
     output_nc.SphericalCoordinates = 0
     output_nc.OutputType = 'Unstructured'
     output_nc.ReplaceFillValueWithNan = replaceNaN
     MakeSelectable()
     RenameSource(fileName,output_nc)
-    
+
     transCoor = TransformCoords(src=output_nc,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis,reverseCoords=reverseCoords,revCenter=revCenter)
     MakeSelectable()
-	
+
     if len(logCoords)>0 :
         RenameSource('LogCoor',transCoor)
     else:
@@ -183,9 +183,9 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
 
 def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=1e3, src=GetActiveSource() ):
     """Expand any 2D dataset into 3D with the values of a field.
-        
+
         Make3D takes a 2D dataset, and adds a third dimension corresponding to a data field.
-        
+
         INPUTS:
             expandVar    -- name of the variable to use as third dimension
             expandDir    -- direction in which to expand {'x','y','z'}. Make it negative for expanding in opposite direction: {'-x','-y','-z'}
@@ -241,13 +241,13 @@ def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridiona
         W.Function = '(' + \
         'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY/'+str(ratios[1])+'*'+strPi+'/180))*360 +' + \
         'jHat*'+meridionalComponentName+'/('+strPi+'*6.4e6)*180 +' + \
-        'kHat*'+verticalComponentName+'/'+vertAsp + \
-        ')*'+str(secondsPerTimeStep) 
+        'kHat*'+verticalComponentName+'/'+str(vertAsp) + \
+        ')*'+str(secondsPerTimeStep)
     else:
         W.Function =  '(' + \
         'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY/'+str(ratios[1])+'*'+strPi+'/180))*360 +' + \
         'jHat*'+meridionalComponentName+'/('+strPi+'*6.4e6)*180' + \
-        ')*'+str(secondsPerTimeStep)  
+        ')*'+str(secondsPerTimeStep)
     W.ResultArrayName = 'W'
     RenameSource('CartWind2Sphere',W)
     MakeSelectable(W)
@@ -275,7 +275,7 @@ def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridiona
 # extract the boundaries of a filter
 def ExtractBounds(src=GetActiveSource()):
     """Return the axis extremities (bounds) of any source filter
-        
+
         Inputs:
         src    - filter to extract bounds of
         Outputs:
@@ -288,7 +288,7 @@ def Sphere2xyz(coords, lam, phi):
     """Compute (x,y,z) from coords=(r,lam,phi) or r,lam,phi, where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
         and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
         Also computes the normal along the radial direction (useful for placing and orienting the camera).
-        
+
         INPUTS:
             coords - list of (radius,lambda,phi) or radius
             lam    - lambda (declination, latitude) if coords is radius
@@ -315,7 +315,7 @@ def Sphere2xyz(coords, lam, phi):
 def xyz2Sphere(coords, y, z):
     """Compute (r,lam,phi) from coords=(x,y,z) or x,y,z, where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
         and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
-        
+
         INPUTS:
             coords - list of (x,y,z) or x
             y      - y coordinate if coords is x

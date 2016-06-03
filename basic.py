@@ -304,7 +304,7 @@ def Sphere2xyz(coords, lam=None, phi=None):
     	else:
         	raise Exception("Sphere2xyz: coords has to be a list of length 3 (r,lambda,phi), or a scalar")
     else:
-	rr=coords
+    	rr=coords
     xyzPos = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
     rr=rr+1
     p1     = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
@@ -331,7 +331,7 @@ def xyz2Sphere(coords, y=None, z=None):
     	else:
         	raise Exception("xyz2Sphere: coords has to be a list of length 3 (x,y,z), or a scalar")
     else:
-	x = coords
+    	x = coords
     r   = sqrt(x*x + y*y + z*z)
     if x > 0:
         phi = atan(y/x)

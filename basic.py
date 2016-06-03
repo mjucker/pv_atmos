@@ -284,7 +284,7 @@ def ExtractBounds(src=GetActiveSource()):
     return bounds
 
 ## working with a spherical geometry: conversion functions
-def Sphere2xyz(coords, lam, phi):
+def Sphere2xyz(coords, lam=None, phi=None):
     """Compute (x,y,z) from coords=(r,lam,phi) or r,lam,phi, where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
         and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
         Also computes the normal along the radial direction (useful for placing and orienting the camera).
@@ -298,12 +298,13 @@ def Sphere2xyz(coords, lam, phi):
             normal - list of (xn,yn,zn) along radial direction
     """
     from math import pi,sin,cos
-    if len(coords) == 3:
-        rr=coords[0];lam=coords[1];phi=coords[2]
-    elif len(coords) == 1:
-        rr=coords
+    if isinstance(coords,list) or isinstance(coords,tuple):
+    	if len(coords) == 3:
+        	rr=coords[0];lam=coords[1];phi=coords[2]
+    	else:
+        	raise Exception("Sphere2xyz: coords has to be a list of length 3 (r,lambda,phi), or a scalar")
     else:
-        raise Exception("Sphere2xyz: coords has to be a list of length 3 (r,lambda,phi), or a scalar (radius)")
+	rr=coords
     xyzPos = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
     rr=rr+1
     p1     = [rr*cos(lam*pi/180)*cos(phi*pi/180),rr*cos(lam*pi/180)*sin(phi*pi/180),rr*sin(lam*pi/180)]
@@ -312,7 +313,7 @@ def Sphere2xyz(coords, lam, phi):
         normal.append(p1[i] - xyzPos[i])
     return xyzPos,normal
 #
-def xyz2Sphere(coords, y, z):
+def xyz2Sphere(coords, y=None, z=None):
     """Compute (r,lam,phi) from coords=(x,y,z) or x,y,z, where lam=0 at the Equator, -90 <= lam <= 90 (latitude),
         and phi=0 along x-axis, 0 <= phi <= 360 (longitude)
         
@@ -324,12 +325,13 @@ def xyz2Sphere(coords, y, z):
             sphPos - list of corresponding (r,lam,phi)
     """
     from math import sqrt,pi,sin,cos,asin,atan
-    if len(coords == 3):
-        x=coords[0];y=coords[1];z=coords[2]
-    elif len(coords) == 1:
-        x = coords
+    if isinstance(coords,list) or isinstance(coords,tuple):
+    	if len(coords == 3):
+        	x=coords[0];y=coords[1];z=coords[2]
+    	else:
+        	raise Exception("xyz2Sphere: coords has to be a list of length 3 (x,y,z), or a scalar")
     else:
-        raise Exception("xyz2Sphere: coords has to be a list of length 3 (x,y,z), or a scalar (x)")
+	x = coords
     r   = sqrt(x*x + y*y + z*z)
     if x > 0:
         phi = atan(y/x)

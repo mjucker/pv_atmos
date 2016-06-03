@@ -241,7 +241,7 @@ def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridiona
         W.Function = '(' + \
         'iHat*'+zonalComponentName+'/(6.28*6.4e6*cos(coordsY/'+str(ratios[1])+'*'+strPi+'/180))*360 +' + \
         'jHat*'+meridionalComponentName+'/('+strPi+'*6.4e6)*180 +' + \
-        'kHat*'+verticalComponentName+'/'+vertAsp + \
+        'kHat*'+verticalComponentName+'/'+str(vertAsp) + \
         ')*'+str(secondsPerTimeStep)
     else:
         W.Function =  '(' + \

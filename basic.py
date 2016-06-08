@@ -26,7 +26,7 @@ def ConvertLogCoordString(pString, basis=1e3):
     pString -- the coordinate to convert
     basis   -- basis (surface) pressure to normalize
     """
-    expression = 'abs(log10(abs(' + pString + ')/' + str(basis) + '))'
+    expression = '-log10(abs(' + pString + ')/' + str(basis) + ')'
     return expression
 
 # do the coordinate conversion inside a Calculator

@@ -153,6 +153,10 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
         output_nc     -- netCDF reader object with the file data as read
         transCoor     -- Calculator filter corresponding to the transformed coordinates
     """
+    # Check if file exists
+    import os
+    if not os.path.isfile(fileName):
+        raise IOError('file '+fileName+' does not exist')
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round. Thus, we invert it here
     outputDimensions = ncDims[::-1]
     output_nc = NetCDFReader( FileName=[fileName] )

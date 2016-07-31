@@ -153,10 +153,6 @@ def LoadData( fileName, ncDims=['lon','lat','pfull'], aspectRatios=[1,1,1], logC
         output_nc     -- netCDF reader object with the file data as read
         transCoor     -- Calculator filter corresponding to the transformed coordinates
     """
-    # Check if file exists
-    import os
-    if not os.path.isfile(fileName):
-        raise IOError('file '+fileName+' does not exist')
     # outputDimensions must be in same sequence as in netCDF file, except time (e.g. ['pfull','lat','lon'] ). This is usually the "wrong" way round. Thus, we invert it here
     outputDimensions = ncDims[::-1]
     output_nc = NetCDFReader( FileName=[fileName] )
@@ -330,7 +326,7 @@ def xyz2Sphere(coords, y=None, z=None):
     """
     from math import sqrt,pi,sin,cos,asin,atan
     if isinstance(coords,list) or isinstance(coords,tuple):
-    	if len(coords == 3):
+    	if len(coords) == 3:
         	x=coords[0];y=coords[1];z=coords[2]
     	else:
         	raise Exception("xyz2Sphere: coords has to be a list of length 3 (x,y,z), or a scalar")

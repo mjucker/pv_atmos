@@ -1,4 +1,5 @@
-# pv_atmos  [![DOI](https://zenodo.org/badge/17037764.svg)](https://zenodo.org/badge/latestdoi/17037764)
+# pv_atmos 
+[![DOI](https://zenodo.org/badge/17037764.svg)](https://zenodo.org/badge/latestdoi/17037764) [![pypi](https://badge.fury.io/py/pv_atmos.svg)](https://badge.fury.io/py/pv_atmos)
 
 Python scripting for scientific visualization software
 [ParaView](http://www.paraview.org). Historically, pv_atmos has been developed to work with geophysical, and in particular, atmospheric model data (hence the name). However, pv_atmos has evolved into a very general package, and contains

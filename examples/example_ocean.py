@@ -73,30 +73,45 @@ MakeSelectable()
 
 # now make the bathymetry 3D
 bathy = Make3D(depthVar, expandDir='-z', aspectRatios=aspRat, logCoords=logCoord, src=c2p)
-rep=Show(bathy)
-rep.ColorArrayName = depthVar
-# this works only for paraview > 4.1
+rep=GetDisplayProperties(bathy)
+# paraview >=v5
 try:
-    depthVal = bathy.PointData.GetArray(depthVar)
-    lkpD = AssignLookupTable(depthVal,'erdc_blue_BW')
-    #invert the colors
-    valPts=lkpD.RGBPoints[::4]
-    lkpD.RGBPoints[::4]=valPts[::-1]
-    rep.LookupTable = lkpD
+    ColorBy(rep,('POINTS',depthVar))
+    depthoLUT = GetColorTransferFunction(depthVar)
+    depthoLUT.ApplyPreset('erdc_blue_BW',True)
+    depthoLUT.InvertTransferFunction()
 except:
-    pass
+    rep.ColorArrayName = depthVar
+    # this works only for paraview > 4.1
+    try:
+        depthVal = bathy.PointData.GetArray(depthVar)
+        lkpD = AssignLookupTable(depthVal,'erdc_blue_BW')
+        #invert the colors
+        valPts=lkpD.RGBPoints[::4]
+        lkpD.RGBPoints[::4]=valPts[::-1]
+        rep.LookupTable = lkpD
+    except:
+        pass
 
 
 #### now add data to the ocean #######
 o2_cont = Contour(o2_thresh, ContourBy=['POINTS',dataName], Isosurfaces=dataContours)
 rep=Show()
-rep.ColorArrayName = dataName
+# paraview >=v5
 try:
-    dataVal = o2_cont.PointData.GetArray(dataName)
-    lkpW = AssignLookupTable(dataVal,'GnYlRd')
-    rep.LookupTable = lkpW
+    o2_cont.ComputeScalars = 1
+    ColorBy(rep,('POINTS',dataName))
+    o2LUT = GetColorTransferFunction(dataName)
+    o2LUT.ApplyPreset('GnYlRd',True)
+    o2LUT.RescaleTransferFunction(0.,1.e-4)
 except:
-    pass
+    rep.ColorArrayName = dataName
+    try:
+        dataVal = o2_cont.PointData.GetArray(dataName)
+        lkpW = AssignLookupTable(dataVal,'GnYlRd')
+        rep.LookupTable = lkpW
+    except:
+        pass
 
 #### finally, add a grid  ####
 AddGrid(xlevels=[-270,-225,-180,-135,-90,-45,0,45], ylevels=[-60,-30,0,30,60], zlevels=range(-5000,1000,1000), bounds=[-280,80,-90,90,-5500,0], ratios=aspRat, logCoords=logCoord, AxisNames=["longitude","latitude","depth [m]"], AxisColor=[0,0,0], AxisWidth=1.0,LabelSize=5.0)

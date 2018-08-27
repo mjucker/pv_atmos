@@ -262,12 +262,20 @@ def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridiona
     clipS.ClipType = 'Plane'
     clipS.ClipType.Normal = [0.0, 1.0, 0.0]
     clipS.ClipType.Origin  = [0.0, -80.0*ratios[1], 0.0]
+    try: # paraview v5.5+
+        clipS.Invert = 0
+    except:
+        pass
     RenameSource('clipS',clipS)
     MakeSelectable(clipS)
     clipN = Clip(clipS)
     clipN.ClipType = 'Plane'
     clipN.ClipType.Normal = [0.0,-1.0, 0.0]
     clipN.ClipType.Origin  = [0.0, 80.0*ratios[1], 0.0]
+    try: # paraview v5.5+
+        clipN.Invert = 0
+    except:
+        pass
     RenameSource('clipN',clipN)
     MakeSelectable(clipN)
     return W,norm,clipS,clipN

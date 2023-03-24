@@ -344,6 +344,44 @@ def xyz2Sphere(coords, y=None, z=None):
     lam = asin(z/r)
     return (r,lam*180/pi,phi*180/pi)
 
+
+#
+def SaveAnim(root,start=None,stop=None,viewSize=None,verbose=1):
+    """Save animation across all timesteps.
+       Filename will be root.####.png.
+       start and stop are assumed to be indices if integers, or 
+        actual time else. All timesteps are used if None."""
+    scene = GetAnimationScene()
+    view = GetActiveViewOrCreate('RenderView')
+    if viewSize is not None:
+        view.ViewSize = viewSize
+    if start is None:
+        start = scene.TimeKeeper.TimestepValues[0]
+    if stop is None:
+        stop = scene.TimeKeeper.TimestepValues[-1]
+    for i,t in enumerate(scene.TimeKeeper.TimestepValues):
+        if isinstance(start,int):
+            ms = i
+        else:
+            ms = t
+        if isinstance(stop,int):
+            me = i
+        else:
+            me = t
+        if ms >= start and me <= stop:
+            if verbose > 1:
+                print('timestep ',t)
+            scene.AnimationTime = t
+            frameInd = '{0:04d}'.format(i)
+            outFile = root+frameInd+'.png'
+            SaveScreenshot(outFile,view=view,magnification=1,quality=100)
+            if verbose > 0:
+                print(outFile)
+        else:
+            if verbose > 1:
+                print('leaving out timestep ',t)
+
+
 ## some simple helper functions
 #
 def DeleteAll():

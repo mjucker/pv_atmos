@@ -189,11 +189,12 @@ def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=
         INPUTS:
             expandVar    -- name of the variable to use as third dimension
             expandDir    -- direction in which to expand {'x','y','z'}. Make it negative for expanding in opposite direction: {'-x','-y','-z'}
-            aspectRatios -- how to scale coordinates [xscale,yscale,zscale]. Z coordinate is scaled after applying log10 for logarithmic axes
+            aspectRatios -- how to scale coordinates [xscale,yscale,zscale].
             logCoords    -- index/indices of dimension(s) to be logarithmic
             basis        -- basis to normalize argument to logarithm (ie defines origin). List of same length as logCoords
-            src          -- source fiter to attach to
+            src          -- source filter to attach to
         OUPUTS:
+            make3d       -- a Calculator filter with the intermediate step of adding the variable into the coordinates.
             trans3d      -- a Calculator filter with the transformed 3D field
     """
     make3d = Calculator(src)
@@ -201,9 +202,9 @@ def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=
     if expandDir[0] == '-':
         sign = '-'
     if expandDir.lower()[-1] == 'x':
-        make3d.Function = sign+'iHat*'+expandVar+' + jHat*coordsY + kHat*coordsZ)'
+        make3d.Function = sign+'iHat*'+expandVar+' + jHat*coordsX + kHat*coordsY'
     elif expandDir.lower()[-1] == 'y':
-        make3d.Function = 'iHat*coordsX '+sign+' jHat*'+expandVar+' + kHat*coordsZ)'
+        make3d.Function = 'iHat*coordsX '+sign+' jHat*'+expandVar+' + kHat*coordsY'
     elif expandDir.lower()[-1] == 'z':
         make3d.Function = 'iHat*coordsX + jHat*coordsY '+sign+' kHat*'+expandVar
     else:
@@ -211,7 +212,7 @@ def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=
     make3d.CoordinateResults = 1
 
     trans3d = TransformCoords(src=make3d,aspectRatios=aspectRatios,logCoords=logCoords,basis=basis)
-    return trans3d
+    return make3d,trans3d
 
 ######## some other usefull tools #################################################
 
@@ -262,12 +263,20 @@ def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridiona
     clipS.ClipType = 'Plane'
     clipS.ClipType.Normal = [0.0, 1.0, 0.0]
     clipS.ClipType.Origin  = [0.0, -80.0*ratios[1], 0.0]
+    try: # paraview v5.5+
+        clipS.Invert = 0
+    except:
+        pass
     RenameSource('clipS',clipS)
     MakeSelectable(clipS)
     clipN = Clip(clipS)
     clipN.ClipType = 'Plane'
     clipN.ClipType.Normal = [0.0,-1.0, 0.0]
     clipN.ClipType.Origin  = [0.0, 80.0*ratios[1], 0.0]
+    try: # paraview v5.5+
+        clipN.Invert = 0
+    except:
+        pass
     RenameSource('clipN',clipN)
     MakeSelectable(clipN)
     return W,norm,clipS,clipN

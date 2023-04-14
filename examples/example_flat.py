@@ -38,16 +38,27 @@ if not os.path.isfile(fileName):
 # as an example, apply contour filter on zonal wind to show tropospheric jet streams and stratospheric polar vortex
 # then, add contour at 25m/s
 Cont = Contour(ContourBy='ucomp',Isosurfaces=[25])
-# color it
-repU = Show()
-repU.ColorArrayName = 'ucomp'
-# get lookup table for coloring ucomp, this only works in ParaView >= v4.1
+# make sure ucomp is still available for coloring. Paraview version dependent.
 try:
-    ucomp = output_nc.PointData.GetArray('ucomp')
-    lkpU = AssignLookupTable(ucomp,'Cool to Warm')
-    repU.LookupTable = lkpU
+    Cont.ComputeScalars = 1
 except:
     pass
+# color it
+repU = Show()
+# ColorBy, Paraview >v5
+try:
+    ColorBy(repU,('POINTS','ucomp'))
+    lkpU = GetColorTransferFunction('ucomp')
+    lkpU.RescaleTransferFunction(-50.,50.)
+except:
+    repU.ColorArrayName = 'ucomp'
+    # get lookup table for coloring ucomp, this only works in ParaView >= v4.1
+    try:
+        ucomp = output_nc.PointData.GetArray('ucomp')
+        lkpU = AssignLookupTable(ucomp,'Cool to Warm')
+        repU.LookupTable = lkpU
+    except:
+        pass
 # make it transparent
 repU.Opacity = 0.7
 Show()
@@ -103,17 +114,17 @@ except:
     pass
 Plane180rep.Opacity = 0.7
 # add a plane showing meridional wind strength at the equator
-PlaneEQ=AddGridPlane(1, 0,Bounds,ratio,logCoord,basis,data=1,src=normW)
-RenameSource("PlaneEQ",PlaneEQ)
-PlaneEQrep = GetDisplayProperties(PlaneEQ)
-PlaneEQrep.ColorArrayName = 'vcomp'
-try:
-    vcomp = output_nc.PointData.GetArray('vcomp')
-    lkpV = AssignLookupTable(vcomp,'bone_Matlab')
-    PlaneEQrep.LookupTable = lkpV
-except:
-    pass
-PlaneEQrep.Opacity = 0.7
+# PlaneEQ=AddGridPlane(1, 0,Bounds,ratio,logCoord,basis,data=1,src=normW)
+# RenameSource("PlaneEQ",PlaneEQ)
+# PlaneEQrep = GetDisplayProperties(PlaneEQ)
+# PlaneEQrep.ColorArrayName = 'vcomp'
+# try:
+#     vcomp = output_nc.PointData.GetArray('vcomp')
+#     lkpV = AssignLookupTable(vcomp,'bone_Matlab')
+#     PlaneEQrep.LookupTable = lkpV
+# except:
+#     pass
+# PlaneEQrep.Opacity = 0.7
 
 # some camera settings
 (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax) = BoundAspectRatio(Bounds,ratio,logCoord,basis)
@@ -125,5 +136,3 @@ view.CameraViewAngle = 30
 view.CameraViewUp = [0,0,1]
 
 Render()
-
-

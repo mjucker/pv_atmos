@@ -81,17 +81,24 @@ bathy = Make3D(depthVar, expandDir='-z', aspectRatios=topoAspRat, logCoords=topo
 polBathy = LonLat2Polar(alpha=alpha, src=bathy, cutLat=cut)
 # now some colors
 repD=Show(polBathy)
-repD.ColorArrayName = depthVar
-# this works only for paraview > 4.1
+# Paraview >=v5
 try:
-    depthVal = bathy.PointData.GetArray(depthVar)
-    lkpD = AssignLookupTable(depthVal,'erdc_blue_BW')
-    #invert the colors
-    valPts=lkpD.RGBPoints[::4]
-    lkpD.RGBPoints[::4]=valPts[::-1]
-    repD.LookupTable = lkpD
-except:
-    pass
+    ColorBy(repD,('POINTS',depthVar))
+    repLUT = GetColorTransferFunction(depthVar)
+    repLUT.ApplyPreset('erdc_blue_BW',True)
+    repLUT.InvertTransferFunction()
+except: # Paraview v4
+    repD.ColorArrayName = depthVar
+    # this works only for paraview > 4.1
+    try:
+        depthVal = bathy.PointData.GetArray(depthVar)
+        lkpD = AssignLookupTable(depthVal,'erdc_blue_BW')
+        #invert the colors
+        valPts=lkpD.RGBPoints[::4]
+        lkpD.RGBPoints[::4]=valPts[::-1]
+        repD.LookupTable = lkpD
+    except:
+        pass
 
 
 ## Atmosphere
@@ -102,14 +109,22 @@ polAtmos = LonLat2Polar(alpha=alpha, src=h_coor, cutLat=cut)
 # extract the contours defined above
 polConts = Contour(polAtmos, ContourBy=['POINTS',dataName], Isosurfaces=dataContours)
 repH=Show(polConts)
-repH.ColorArrayName = dataName
-# this works only for paraview > 4.1
+# Paraview >=v5
 try:
-    dataVal = polAtmos.PointData.GetArray(dataName)
-    lkpH = AssignLookupTable(dataVal,'BuRd')
-    repH.LookupTable = lkpH
+    polConts.ComputeScalars = 1
+    ColorBy(repH,('POINTS',dataName))
+    repHLUT = GetColorTransferFunction(dataName)
+    repHLUT.ApplyPreset('BuRd',True)
+    repHLUT.RescaleTransferFunction(-10.e3,20.e3)
 except:
-    pass
+    repH.ColorArrayName = dataName
+    # this works only for paraview > 4.1
+    try:
+        dataVal = polAtmos.PointData.GetArray(dataName)
+        lkpH = AssignLookupTable(dataVal,'BuRd')
+        repH.LookupTable = lkpH
+    except:
+        pass
 # change representation type
 repH.Representation = 'Points'
 
@@ -132,11 +147,14 @@ viewLayout.AssignView(2, renderView)
 
 polTopoFlat = LonLat2Polar(alpha=0, cutLat=0, src=bathy)
 repDFlat = Show(polTopoFlat)
-repDFlat.ColorArrayName = depthVar
 try:
-    repDFlat.LookupTable = lkpD
+    ColorBy(repDFlat,('POINTS',depthVar))
 except:
-    pass
+    repDFlat.ColorArrayName = depthVar
+    try:
+        repDFlat.LookupTable = lkpD
+    except:
+        pass
 
 # same thing for the data
 polAtmosFlat = LonLat2Polar(alpha=0, src=h_coor, cutLat=0)
@@ -144,11 +162,16 @@ polAtmosFlat = LonLat2Polar(alpha=0, src=h_coor, cutLat=0)
 # extract the contours defined above
 polContsFlat = Contour(polAtmosFlat, ContourBy=['POINTS',dataName], Isosurfaces=dataContours)
 repHFlat=Show(polContsFlat)
-repHFlat.ColorArrayName = dataName
-# this works only for paraview > 4.1
 try:
-    repHFlat.LookupTable = lkpH
+    polContsFlat.ComputeScalars = 1
+    ColorBy(repHFlat,('POINTS',dataName))
 except:
-    pass
+    repHFlat.ColorArrayName = dataName
+    # this works only for paraview > 4.1
+    try:
+        repHFlat.LookupTable = lkpH
+    except:
+        pass
 # change representation type
 repHFlat.Representation = 'Points'
+repHFlat.PointSize = 5.0

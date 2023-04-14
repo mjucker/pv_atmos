@@ -581,6 +581,11 @@ def LonLat2Polar( alpha, src=GetActiveSource(), pole='north', cutLat=-90, xyscal
         ClipPole = Clip(src)
         ClipPole.ClipType.Normal = [0, clipSign, 0]
         ClipPole.ClipType.Origin = [0, cutLat, 0]
+        # ParaView v5 flips the directions
+        try:
+            ClipPole.Invert = 0
+        except:
+            pass
         CoordsPrime = Calculator(ClipPole)
     else:
         CoordsPrime = Calculator(src)

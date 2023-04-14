@@ -44,16 +44,28 @@ MakeSelectable(Globe)
 # as an example, apply contour filter on zonal wind to show tropospheric jet streams and stratospheric polar vortex
 # then, add contour at 25m/s
 Cont = Contour(ContourBy='ucomp',Isosurfaces=[25])
-# color it
-repU = GetDisplayProperties()
-repU.ColorArrayName = 'ucomp'
-# get lookup table for coloring ucomp, this only works in >v4.0
+# make sure ucomp is still available for coloring. Paraview version dependent.
 try:
-    ucomp = output_nc.PointData.GetArray('ucomp')
-    lkpU = AssignLookupTable(ucomp,'Cool to Warm')
-    repU.LookupTable = lkpU
+    Cont.ComputeScalars = 1
 except:
     pass
+# color it
+repU = GetDisplayProperties()
+# ColorBy, Paraview >v5
+try:
+    ColorBy(repU,('POINTS','ucomp'))
+    lkpU = GetColorTransferFunction('ucomp')
+    lkpU.RescaleTransferFunction(-50.,50.)
+except:
+    try:
+        repU.ColorArrayName = 'ucomp'
+        # get lookup table for coloring ucomp, this only works in >v4.0
+        ucomp = output_nc.PointData.GetArray('ucomp')
+        lkpU = AssignLookupTable(ucomp,'Cool to Warm')
+        repU.LookupTable = lkpU
+        repU.RescaleTransferFunction(-50.,50.)
+    except:
+        pass
 # make it transparent
 repU.Opacity = 0.7
 Show()
@@ -90,5 +102,3 @@ view.CameraFocalPoint = [0,0,0.5]
 view.CameraViewUp = [0,0,1]
 
 Render()
-
-

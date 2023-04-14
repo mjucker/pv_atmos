@@ -1,4 +1,5 @@
-# pv_atmos  [![DOI](https://zenodo.org/badge/17037764.svg)](https://zenodo.org/badge/latestdoi/17037764)
+# pv_atmos 
+[![DOI](https://zenodo.org/badge/17037764.svg)](https://zenodo.org/badge/latestdoi/17037764) [![pypi](https://badge.fury.io/py/pv_atmos.svg)](https://badge.fury.io/py/pv_atmos)
 
 Python scripting for scientific visualization software
 [ParaView](http://www.paraview.org). Historically, pv_atmos has been developed to work with geophysical, and in particular, atmospheric model data (hence the name). However, pv_atmos has evolved into a very general package, and contains
@@ -158,8 +159,7 @@ However, be advised that the functions depend on paraview.simple, which is not a
 3) For use in the ParaView python console without installation: No python installation and/or
 command shell is needed. Download the .zip file, unpack it where
 convenient. Start ParaView, and open the Python Shell contained within
-ParaView. If the pv_atmos files are not unpacked in the run directory,
-use the `Run Script` button and choose either `basic.py` or `grids.py` (or one after the other of course), and you are ready to use the pv_atmos functions.
+ParaView by going to `Tools -> Python Shell` or `View -> Python Shell`, depending on ParaView version. If the pv_atmos files are not unpacked in the run directory, use the `Run Script` button and choose either `basic.py` or `grids.py` (or one after the other of course), and you are ready to use the pv_atmos functions.
 
 # Use
 
@@ -167,26 +167,32 @@ Follow any of the below bullet points to get going with pv_atmos.
 
 * No Python outside ParaView is needed, as ParaView ships with its own distribution. If you don't want to use full python in a console, but simply want to work with the ParaView GUI:
 
-  - Click on `Run Script`, and double-click on `basic.py` and `grids.py`
-  - Or: Open `Tools -> Python Shell`, and then:
-```
+  - Open `Tools -> Python Shell` or `View -> Python Shell`:
+  - In the Python Shell, click on `Run Script`, and double-click on `basic.py` and `grids.py`
+  - Or: In the Python Shell, type
+```python
   $ from pv_atmos.basic import *
   $ from pv_atmos.grids import *
 ```
 
 * Run the version of python shipped with ParaView: This will automatically adjust your python path, and paraview.simple will be recognized:
+```bash
+$ /path/to/pvpython
 ```
-$ /Applications/paraview.app/Contents/bin/pvpython
+   - On a Mac, `/path/to/pvpython` is something like `/Applications/paraview.app/Contents/bin/pvpython`.
+```python
 $ from pv_atmos.basic import *
 $ from pv_atmos.grids import *
 ```
 * Set the PYTHONPATH to where paraview.simple resides. On a Mac, this is typically
-```
+```bash
 $ export DYLD_FALLBACK_LIBRARY_PATH="/Applications/paraview.app/Contents/Libraries"
 $ export LD_LIBRARY_PATH="/Applications/paraview.app/Contents/Libraries"
 $ export DYLD_FALLBACK_FRAMEWORK_PATH="/Applications/paraview.app/Contents/Frameworks"
 $ export PYTHONPATH="/Applications/paraview.app/Contents/Python:/Applications/paraview.app/Contents/Libraries
 $ python
+```
+```python
 $ from pv_atmos.basic import *
 $ from pv_atmos.grids import *
 ```
@@ -197,7 +203,7 @@ The `examples` directory contains four example scripts and the data files
 uv_daily.nc, ocean_depth.nc, ECMWF_19790223.nc, and ocean_o2.nc. The examples can be run within the python terminal of ParaView, or a general python session, provided paraview.simple is located in the python path.
 The example files contain the 3D structure of zonal and meridional wind over three daily time steps, created from GCM output; ocean topography data from GFDL's CM2.1 model; geopotential height anomalies from ERA-Interim reanalysis; and oxygen data from GFDL's ESM2M model, provided by Thomas Froelicher. One script will create a spherical, one a rectangular plot of zonal wind. The pole script will project reanalysis and bathymetry data onto the North pole. The ocean script will create a rectangular ocean basin.
 When using the example files, make sure to set `pvAtmosPath` within the example scripts or the command line to the directory containing `basic.py` and `grids.py`:
-```
+```python
 $ pvAtmosPath = '/path/to/pv_atmos/'
 ```
 The examples will import pv_atmos themselves, so no loading of pv_atmos is necessary prior to running the examples.

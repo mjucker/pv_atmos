@@ -346,7 +346,7 @@ def xyz2Sphere(coords, y=None, z=None):
 
 
 #
-def SaveAnim(root,start=None,stop=None,viewSize=None,verbose=1):
+def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1):
     """Save animation across all timesteps.
        Filename will be root.####.png.
        start and stop are assumed to be indices if integers, or 
@@ -359,7 +359,10 @@ def SaveAnim(root,start=None,stop=None,viewSize=None,verbose=1):
         start = scene.TimeKeeper.TimestepValues[0]
     if stop is None:
         stop = scene.TimeKeeper.TimestepValues[-1]
-    for i,t in enumerate(scene.TimeKeeper.TimestepValues):
+    if verbose > 1:
+        nsteps = len(scene.TimeKeeper.TimestepValues)
+        print('There is a total number of {0} time steps.'.format(nsteps))
+    for i,t in enumerate(scene.TimeKeeper.TimestepValues[::stride]):
         if isinstance(start,int):
             ms = i
         else:

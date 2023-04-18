@@ -355,7 +355,7 @@ def xyz2Sphere(coords, y=None, z=None):
 
 
 #
-def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1):
+def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1,transparent=False):
     """Save animation across all timesteps.
        Filename will be root.####.png.
        start and stop are assumed to be indices if integers, or 
@@ -364,6 +364,10 @@ def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1):
     view = GetActiveViewOrCreate('RenderView')
     if viewSize is not None:
         view.ViewSize = viewSize
+    if transparent:
+        transparent = 1
+    else:
+        transparent = 0
     if start is None:
         start = scene.TimeKeeper.TimestepValues[0]
     if stop is None:
@@ -371,27 +375,23 @@ def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1):
     if verbose > 1:
         nsteps = len(scene.TimeKeeper.TimestepValues)
         print('There is a total number of {0} time steps.'.format(nsteps))
-    for i,t in enumerate(scene.TimeKeeper.TimestepValues[::stride]):
-        if isinstance(start,int):
-            ms = i
-        else:
-            ms = t
-        if isinstance(stop,int):
-            me = i
-        else:
-            me = t
-        if ms >= start and me <= stop:
-            if verbose > 1:
-                print('timestep ',t)
-            scene.AnimationTime = t
-            frameInd = '{0:04d}'.format(i)
-            outFile = root+frameInd+'.png'
-            SaveScreenshot(outFile,view=view,magnification=1,quality=100)
-            if verbose > 0:
-                print(outFile)
-        else:
-            if verbose > 1:
-                print('leaving out timestep ',t)
+    if isinstance(start,int):
+        ms = start
+    else:
+        ms = scene.TimeKeeper.TimestepValues[:].index(start)
+    if isinstance(stop,int):
+        me = stop
+    else:
+        me = scene.TimeKeeper.TimestepValues[:].index(stop)
+    for i,t in enumerate(scene.TimeKeeper.TimestepValues[ms:me:stride]):
+        if verbose > 1:
+            print('timestep ',t)
+        scene.AnimationTime = t
+        frameInd = '{0:04d}'.format(i)
+        outFile = root+frameInd+'.png'
+        SaveScreenshot(outFile,view=view,magnification=1,quality=100)
+        if verbose > 0:
+            print(outFile)
 
 
 ## some simple helper functions

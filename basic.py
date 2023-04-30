@@ -383,6 +383,8 @@ def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1,transpar
         me = stop
     else:
         me = scene.TimeKeeper.TimestepValues[:].index(stop)
+    if verbose > 1:
+        print('Going from {0} to {1} with stride of {2}.'.format(ms,me,stride))
     for i,t in enumerate(scene.TimeKeeper.TimestepValues[ms:me:stride]):
         if verbose > 1:
             print('timestep ',t)

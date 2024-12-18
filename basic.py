@@ -218,7 +218,7 @@ def Make3D( expandVar, expandDir='z', aspectRatios=[1,1,1], logCoords=[], basis=
 
 # transform winds from SI to plot units
 def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridionalComponentName='vcomp', secondsPerTimeStep=86400, verticalComponentName='none', ratios=[1,1,1], vertAsp=1 ):
-    """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. This is, naturally, specific to spherical geometry, and assumes that coordsX = longitude [degrees], coordsY = latitude [degrees], and coordsZ = vertical coordinate.
+    """Convert wind components from m/s to lat/timeStep, lon/timeStep, z/timeStep, and store it as vector W. This is, naturally, specific to spherical geometry, and assumes that coordsX = longitude [degrees], coordsY = latitude [degrees], and coordsZ = vertical coordinate. However, this is still only accurate if showing the winds on a flat lon x lat surface. For glyph vectors on the sphere, subsequently call Wind2SphericalVectors().
 
     Works with both pressure and height velocity, as long as vertAsp = [initial vertical range]/[present vertical range] is correct.
     INPUTS:
@@ -280,6 +280,47 @@ def CartWind2Sphere(src=GetActiveSource(), zonalComponentName='ucomp', meridiona
     RenameSource('clipN',clipN)
     MakeSelectable(clipN)
     return W,norm,clipS,clipN
+
+def Wind2SphericalVectors(src=GetActiveSource(),vectorName='W'):
+    """Perform the necessary vector algebra to represent wind components in units of lat/timeStep, lon/timeStep, z/timeStep on the sphere. These vectors are stored as vector V. Prior to this, you would probably want to run CartWind2Sphere() for the wind vectors to be in the appropriate units.
+
+    You will probably want to run Cart2spherical() after this to put the whole thing into proper spherical geometry.
+    INPUTS:
+        src        -- filter in pipeline to attach to
+        vectorName -- name of vector components in lat/timeStep, lon/timeStep, z/timeStep
+    OUTPUTS:
+        Adds five Calculators to the pipeline:
+        P1    -- extract start position of vectors in flat geometry
+        P2    -- extract end position of vectors in flat geometry
+        Q1    -- start position of vectors in spherical geometry
+        Q2    -- end position of vectors in spherical geometry
+        V     -- final vector which can be used to drive, e.g., Glyph(), SurfaceLIC, Stream Lines, etc.
+    """
+    
+    # flat vector start
+    p1 = Calculator(registrationName='P1', Input=src)
+    p1.ResultArrayName = 'P1'
+    p1.Function = 'iHat*coordsX+jHat*coordsY+kHat*coordsZ'
+    # flat vector stop
+    p2 = Calculator(registrationName='P2', Input=p1)
+    p2.ResultArrayName = 'P2'
+    p2.Function = 'P1+'+vectorName
+    # compute spherical vector start
+    q1 = Calculator(registrationName='Q1', Input=p2)
+    q1.ResultArrayName = 'Q1'
+    q1.Function = 'iHat*(1.000+P1_Z)*cos(P1_Y*3.14159/180)*cos(P1_X*3.14159/180) + jHat*(1.000+P1_Z)*cos(P1_Y*3.14159/180)*sin(P1_X*3.14159/180) + kHat*(1.000+P1_Z)*sin(P1_Y*3.14159/180)'
+    # compute spherical vector end
+    q2 = Calculator(registrationName='Q2', Input=q1)
+    q2.ResultArrayName = 'Q2'
+    q2.Function = 'iHat*(1.000+P2_Z)*cos(P2_Y*3.14159/180)*cos(P2_X*3.14159/180) + jHat*(1.000+P2_Z)*cos(P2_Y*3.14159/180)*sin(P2_X*3.14159/180) + kHat*(1.000+P2_Z)*sin(P2_Y*3.14159/180)'
+    # final vector is end point minus start point
+    v = Calculator(registrationName='V', Input=q2)
+    v.ResultArrayName = 'V'
+    v.Function = 'Q2-Q1'
+    return p1,p2,q1,q2,v
+
+
+
 
 # extract the boundaries of a filter
 def ExtractBounds(src=GetActiveSource()):

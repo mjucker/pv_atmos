@@ -394,6 +394,49 @@ def xyz2Sphere(coords, y=None, z=None):
     lam = asin(z/r)
     return (r,lam*180/pi,phi*180/pi)
 
+
+#
+def SaveAnim(root,start=None,stop=None,stride=1,viewSize=None,verbose=1,transparent=False):
+    """Save animation across all timesteps.
+       Filename will be root.####.png.
+       start and stop are assumed to be indices if integers, or 
+        actual time else. All timesteps are used if None."""
+    scene = GetAnimationScene()
+    view = GetActiveViewOrCreate('RenderView')
+    if viewSize is not None:
+        view.ViewSize = viewSize
+    if transparent:
+        transparent = 1
+    else:
+        transparent = 0
+    if start is None:
+        start = scene.TimeKeeper.TimestepValues[0]
+    if stop is None:
+        stop = scene.TimeKeeper.TimestepValues[-1]
+    if verbose > 1:
+        nsteps = len(scene.TimeKeeper.TimestepValues)
+        print('There is a total number of {0} time steps.'.format(nsteps))
+    if isinstance(start,int):
+        ms = start
+    else:
+        ms = scene.TimeKeeper.TimestepValues[:].index(start)
+    if isinstance(stop,int):
+        me = stop
+    else:
+        me = scene.TimeKeeper.TimestepValues[:].index(stop)
+    if verbose > 1:
+        print('Going from {0} to {1} with stride of {2}.'.format(ms,me,stride))
+    for i,t in enumerate(scene.TimeKeeper.TimestepValues[ms:me:stride]):
+        if verbose > 1:
+            print('timestep ',t)
+        scene.AnimationTime = t
+        frameInd = '{0:04d}'.format(i)
+        outFile = root+frameInd+'.png'
+        SaveScreenshot(outFile,view=view,magnification=1,quality=100)
+        if verbose > 0:
+            print(outFile)
+
+
 ## some simple helper functions
 #
 def DeleteAll():
